@@ -39,7 +39,7 @@ const Header = () => {
           Explorer
         </button>
         <button
-          onClick={() => handleNavigation(`/pages/pools/${id}`)}
+          onClick={() => handleNavigation(`/pages/pools`)}
           className="text-white hover:text-gray-300 transition"
         >
           My Positions
