@@ -20,7 +20,7 @@ const Header = () => {
           Swap
         </button>
         <button
-          onClick={() => handleNavigation('/pages/explore')}
+          onClick={() => handleNavigation("/pages/explore")}
           className="text-white hover:text-gray-300 transition"
         >
           Explorer
@@ -30,6 +30,12 @@ const Header = () => {
           className="text-white hover:text-gray-300 transition"
         >
           My Positions
+        </button>
+        <button
+          className="text-white hover:text-gray-300 transition"
+          onClick={() => handleNavigation(`/pages/createToken`)}
+        >
+          Create Token
         </button>
       </div>
       <div className="flex space-x-4 items-center">

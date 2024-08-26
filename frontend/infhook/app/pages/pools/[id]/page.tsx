@@ -12,8 +12,8 @@ const Pools = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center">
-      <div className="flex flex-col items-center w-[1000px]">
+    <div className="flex justify-center items-center">
+      <div className="flex flex-col justify-center items-center w-[1000px] mt-44">
         <div className="flex justify-between items-center w-full mb-4">
           <h1 className="text-2xl font-bold text-white">Pools</h1>
           <motion.button
