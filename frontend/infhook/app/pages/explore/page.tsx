@@ -10,6 +10,7 @@ import {
 } from "../../../utils/functions/addLiquidityFunctions";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../../../utils/config";
+import { useHook } from "../../components/hookContext";
 
 const eventSignature = keccak256(
   toBytes(
@@ -40,6 +41,9 @@ const Explore = () => {
   const [token1Amount, setToken1Amount] = useState<string>("");
   const [lowerPrice, setLowerPrice] = useState<string>("");
   const [upperPrice, setUpperPrice] = useState<string>("");
+  const { selectedHook } = useHook();
+  
+  console.log("Selected Hook:", selectedHook);
 
   async function getEvents() {
     try {
@@ -60,19 +64,21 @@ const Explore = () => {
           });
           console.log(decodedEvent);
 
-          decodedEvents.push({
-            args: {
-              currency0: decodedEvent.args.currency0,
-              currency1: decodedEvent.args.currency1,
-              fee: decodedEvent.args.fee,
-              hooks: decodedEvent.args.hooks,
-              id: decodedEvent.args.id,
-              sqrtPriceX96: BigInt(decodedEvent.args.sqrtPriceX96),
-              tick: decodedEvent.args.tick,
-              tickSpacing: decodedEvent.args.tickSpacing,
-            },
-            eventName: decodedEvent.eventName,
-          });
+          if (decodedEvent.args.hooks.toLowerCase() === selectedHook.toLowerCase()) {
+            decodedEvents.push({
+              args: {
+                currency0: decodedEvent.args.currency0,
+                currency1: decodedEvent.args.currency1,
+                fee: decodedEvent.args.fee,
+                hooks: decodedEvent.args.hooks,
+                id: decodedEvent.args.id,
+                sqrtPriceX96: BigInt(decodedEvent.args.sqrtPriceX96),
+                tick: decodedEvent.args.tick,
+                tickSpacing: decodedEvent.args.tickSpacing,
+              },
+              eventName: decodedEvent.eventName,
+            });
+          }
         }
       }
       setEvents(decodedEvents);
