@@ -11,6 +11,8 @@ import {
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../../../utils/config";
 import { useHook } from "../../components/hookContext";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const eventSignature = keccak256(
   toBytes(
@@ -42,8 +44,15 @@ const Explore = () => {
   const [lowerPrice, setLowerPrice] = useState<string>("");
   const [upperPrice, setUpperPrice] = useState<string>("");
   const { selectedHook } = useHook();
-  
+  const router = useRouter();
+
   console.log("Selected Hook:", selectedHook);
+
+  const handleNavigationToPool = (pool) => {
+    router.push(
+      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
+    );
+  };
 
   async function getEvents() {
     try {
@@ -64,7 +73,9 @@ const Explore = () => {
           });
           console.log(decodedEvent);
 
-          if (decodedEvent.args.hooks.toLowerCase() === selectedHook.toLowerCase()) {
+          if (
+            decodedEvent.args.hooks.toLowerCase() === selectedHook.toLowerCase()
+          ) {
             decodedEvents.push({
               args: {
                 currency0: decodedEvent.args.currency0,
@@ -154,6 +165,7 @@ const Explore = () => {
           <div
             key={index}
             className="bg-neutral-800 text-white rounded-lg shadow-md p-6 mb-6"
+            onClick={() => handleNavigationToPool(event)}
           >
             <h3 className="text-xl font-bold mb-4">
               Event Name: {event.eventName}
