@@ -85,6 +85,7 @@ const Explore = () => {
     const tick = Math.log(price) / Math.log(1.0001);
     return Math.ceil(tick / tickSpacing) * tickSpacing;
   };
+  console.log("Tick:", calculateTick(0.3, 10000));
 
   const handleAddLiquidity = async () => {
     if (!selectedEvent) return;
