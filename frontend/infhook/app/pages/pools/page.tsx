@@ -52,11 +52,15 @@ const Pools = () => {
   const [userTokens, setUserTokens] = useState<
     { name: string; symbol: string }[]
   >([]);
-
+  const [isDataFetched, setIsDataFetched] = useState(false);
+ 
   useEffect(() => {
     getEvents();
-    fetchTokenInfo();
   }, [selectedHook]);
+
+  useEffect(() => {
+    fetchTokenInfo();
+  }, []);
 
   console.log("Selected Hook:", selectedHook);
 
@@ -100,6 +104,7 @@ const Pools = () => {
       }
       setEvents(decodedEvents);
       handleGetBalance(decodedEvents);
+      setIsDataFetched(true);
     } catch (error) {
       console.error("Error fetching or processing data:", error);
     }
@@ -170,7 +175,7 @@ const Pools = () => {
                 );
               })}
             </ul>
-          ) : (
+          ) : isDataFetched ? (
             <div className="flex flex-col items-center justify-center h-48 bg-transparent rounded-lg">
               <svg
                 fill="rgba(255, 255, 255, 0.8)"
@@ -187,6 +192,8 @@ const Pools = () => {
                 Your active liquidity positions will appear here.
               </p>
             </div>
+          ) : (
+            <p className="text-center text-white">Loading...</p>
           )}
         </div>
       </div>

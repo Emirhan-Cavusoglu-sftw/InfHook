@@ -1,16 +1,16 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
-import { getTokenInfo } from "../../../../utils/functions/createTokenFunctions";
-import { swap } from "../../../../utils/functions/swapFunctions";
+import React, { useState, useEffect } from "react";
+import { getTokenInfo } from "../../../utils/functions/createTokenFunctions";
+import { swap } from "../../../utils/functions/swapFunctions";
 import { decodeEventLog } from "viem";
 import { keccak256, toBytes } from "viem";
-import { config } from "../../../../utils/config";
-import { PoolManagerABI } from "../../../../utils/poolManagerABI.json";
-import { LiquidiytDeltaABI } from "../../../../utils/readerABI.json";
+import { config } from "../../../utils/config";
+import { PoolManagerABI } from "../../../utils/poolManagerABI.json";
+import { LiquidiytDeltaABI } from "../../../utils/readerABI.json";
 import { writeContract, readContract } from "@wagmi/core";
-import { ERC20ABI } from "../../../../utils/ERC20ABI.json";
+import { ERC20ABI } from "../../../utils/ERC20ABI.json";
 import { waitForTransactionReceipt } from "@wagmi/core";
-import LimitOrder from "../../../components/LimitOrder";
+import { useHook } from "../../components/hookContext";
 
 interface TokenInfo {
   tokenAddress: string;
@@ -52,17 +52,23 @@ const Swap = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [zeroForOne, setZeroForOne] = useState(true);
   const [sqrtPriceLimitX96, setSqrtPriceLimitX96] = useState<BigInt>(BigInt(0));
+  const [selectedPool, setSelectedPool] = useState<Event | null>(null);
+  const { selectedHook } = useHook();
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+
+  console.log("Selected Hook:", selectedHook);
 
   useEffect(() => {
     getTokens();
     getEvents();
-  }, []);
+  }, [selectedHook]);
 
   useEffect(() => {
-    if (events.length > 0) {
+    if (selectedPool) {
+      fetchsqrtPrivceLimitX96();
       getSlot();
     }
-  }, [events]);
+  }, [selectedPool, zeroForOne]);
 
   async function getEvents() {
     try {
@@ -98,7 +104,13 @@ const Swap = () => {
           });
         }
       }
+
+      const filtered = decodedEvents.filter(
+        (event) => event.args.hooks.toLowerCase() === selectedHook.toLowerCase()
+      );
+
       setEvents(decodedEvents);
+      setFilteredEvents(filtered);
     } catch (error) {
       console.error("Error fetching or processing data:", error);
     }
@@ -120,17 +132,12 @@ const Swap = () => {
     setIsPopupVisible(false);
   };
 
-  useEffect(() => {
-    fetchsqrtPrivceLimitX96();
-  }, [zeroForOne]);
-
   const fetchsqrtPrivceLimitX96 = async () => {
     if (zeroForOne) {
       setSqrtPriceLimitX96(BigInt(4295128740));
     } else {
       setSqrtPriceLimitX96(
         BigInt("1461446703485210103287273052203988822378723970341")
-        // 1461446703485210175993845903335784348927318294528
       );
     }
   };
@@ -150,6 +157,15 @@ const Swap = () => {
     setIsPopupVisible(true);
   };
 
+  const openPoolSelectPopup = () => {
+    setIsPopupVisible(true);
+  };
+
+  const handlePoolSelect = (pool: Event) => {
+    setSelectedPool(pool);
+    setIsPopupVisible(false);
+  };
+
   const closePopupOnOutsideClick = (e) => {
     if (e.target.id === "popupOverlay") {
       setIsPopupVisible(false);
@@ -157,39 +173,40 @@ const Swap = () => {
   };
 
   const handleSwap = async () => {
-    if (token1Address === "" || token2Address === "") {
-      alert("Please select tokens");
+    if (!selectedPool) {
+      alert("Please select a pool");
       return;
     }
 
-    // const approve1 = await Approve(token1Address);
-    // const approve2 = await Approve(token2Address);
+    try {
+      const approve1 = await Approve(selectedPool.args.currency0);
+      const approve2 = await Approve(selectedPool.args.currency1);
+      console.log("Selected Pool:", selectedPool);
+      console.log("ZeroForOne:", zeroForOne);
+      console.log("SqrtPriceLimitX96:", sqrtPriceLimitX96);
 
-    // async function transactionReceipt(approve1: any, approve2: any) {
-    //   const transactionReceipt = await waitForTransactionReceipt(config, {
-    //     hash: approve1,
-    //   });
-
-    //   const transactionReceipt2 = await waitForTransactionReceipt(config, {
-    //     hash: approve2,
-    //   });
-    // }
-
-    // await transactionReceipt(approve1, approve2);
-
-    await swap(
-      [
-        events[0]?.args.currency0,
-        events[0]?.args.currency1,
-        events[0]?.args.fee,
-        events[0]?.args.tickSpacing,
-        events[0]?.args.hooks,
-      ],
-      [zeroForOne, BigInt(amountSpecified), sqrtPriceLimitX96]
-    );
+      if (approve1 && approve2) {
+        console.log("Approve işlemleri başarılı.");
+        await swap(
+          [
+            selectedPool.args.currency0,
+            selectedPool.args.currency1,
+            selectedPool.args.fee,
+            selectedPool.args.tickSpacing,
+            selectedPool.args.hooks,
+          ],
+          [zeroForOne, BigInt(amountSpecified), sqrtPriceLimitX96]
+        );
+      } else {
+        console.error("Approve işlemi başarısız oldu.");
+      }
+    } catch (error) {
+      console.error("Swap işlemi sırasında hata oluştu:", error);
+    }
   };
 
   async function getSlot() {
+    if (!selectedPool) return;
     try {
       const slot = await readContract(config, {
         abi: LiquidiytDeltaABI,
@@ -197,11 +214,11 @@ const Swap = () => {
         functionName: "getSlot0",
         args: [
           [
-            events[0]?.args.currency0,
-            events[0]?.args.currency1,
-            events[0]?.args.fee,
-            events[0]?.args.tickSpacing,
-            events[0]?.args.hooks,
+            selectedPool.args.currency0,
+            selectedPool.args.currency1,
+            selectedPool.args.fee,
+            selectedPool.args.tickSpacing,
+            selectedPool.args.hooks,
           ],
           "0xccB5a2D19A67a1a5105F674465CAe2c5Ab1496Ac",
         ],
@@ -271,9 +288,19 @@ const Swap = () => {
                 `}</style>
                 <button
                   className="ml-auto bg-cyan-900 opacity-80 rounded-3xl text-white text-xl px-4 py-2"
-                  onClick={() => openTokenSelectPopup(1)}
+                  onClick={openPoolSelectPopup}
                 >
-                  {selectedToken1 || "Select Token"}
+                  {selectedPool
+                    ? `${
+                        tokens.find(
+                          (t) => t.tokenAddress === selectedPool.args.currency0
+                        )?.symbol
+                      }/${
+                        tokens.find(
+                          (t) => t.tokenAddress === selectedPool.args.currency1
+                        )?.symbol
+                      }`
+                    : "Select Pool"}
                 </button>
               </div>
             </div>
@@ -314,9 +341,19 @@ const Swap = () => {
                 `}</style>
                 <button
                   className="ml-auto bg-cyan-900 opacity-80 rounded-3xl text-white text-xl px-4 py-2"
-                  onClick={() => openTokenSelectPopup(2)}
+                  disabled
                 >
-                  {selectedToken2 || "Select Token"}
+                  {selectedPool
+                    ? `${
+                        tokens.find(
+                          (t) => t.tokenAddress === selectedPool.args.currency1
+                        )?.symbol
+                      }/${
+                        tokens.find(
+                          (t) => t.tokenAddress === selectedPool.args.currency0
+                        )?.symbol
+                      }`
+                    : "Select Pool"}
                 </button>
               </div>
             </div>
@@ -329,18 +366,16 @@ const Swap = () => {
           Swap
         </button>
 
-        {/* Token Select Popup */}
+        {/* Pool Select Popup */}
         {isPopupVisible && (
           <div
             id="popupOverlay"
             className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 "
-            onClick={closePopupOnOutsideClick}
+            onClick={() => setIsPopupVisible(false)}
           >
             <div className="bg-neutral-900 w-[500px] h-[550px] rounded-3xl flex flex-col items-center p-4 ">
               <div className="w-full flex justify-between items-center ">
-                <h1 className="text-white opacity-60 text-lg">
-                  Select a token
-                </h1>
+                <h1 className="text-white opacity-60 text-lg">Select a pool</h1>
                 <button
                   className="text-white opacity-60 text-xl"
                   onClick={() => setIsPopupVisible(false)}
@@ -348,20 +383,26 @@ const Swap = () => {
                   &times;
                 </button>
               </div>
-              <input
-                type="text"
-                className="w-full mt-4 p-2 rounded bg-neutral-800 text-white"
-                placeholder="Search name or paste address"
-              />
               <div className="mt-4 w-full flex flex-col space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar">
-                {tokens.map((token, index) => (
+                {filteredEvents.map((pool, index) => (
                   <button
                     key={index}
                     className="w-full p-4 bg-neutral-800 rounded-3xl text-white flex justify-between items-center"
-                    onClick={() => handleTokenSelect(token.symbol)}
+                    onClick={() => handlePoolSelect(pool)}
                   >
-                    <span>{token.name}</span>
-                    <span className="opacity-60 text-sm">{token.symbol}</span>
+                    <span>
+                      {
+                        tokens.find(
+                          (t) => t.tokenAddress === pool.args.currency0
+                        )?.symbol
+                      }
+                      /
+                      {
+                        tokens.find(
+                          (t) => t.tokenAddress === pool.args.currency1
+                        )?.symbol
+                      }
+                    </span>
                   </button>
                 ))}
               </div>

@@ -22,12 +22,11 @@ const Header = () => {
   const limitOrderHook = "0xLimitOrderHookAddress";
   const defaultHook = "0x0000000000000000000000000000000000000000";
 
-  const id = "0x000000000000000000";
   return (
     <header className="w-full flex justify-between items-center py-4 px-8 bg-transparent">
       <div className="flex space-x-4">
         <button
-          onClick={() => handleNavigation(`/pages/swap/${id}`)}
+          onClick={() => handleNavigation(`/pages/swap/`)}
           className="text-white hover:text-gray-300 transition"
         >
           Swap
