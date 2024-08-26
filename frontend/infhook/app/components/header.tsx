@@ -63,7 +63,7 @@ const Header = () => {
       <button
           className={`transition ${
             selectedHook === nezlobinHook
-              ? "text-cyan-500" // Turkuaz rengi seçildiğinde uygulanacak
+              ? "text-cyan-500"
               : "text-white hover:text-gray-300"
           }`}
           onClick={() => handleHookSelection(nezlobinHook, false)}
@@ -73,7 +73,7 @@ const Header = () => {
         <button
           className={`transition ${
             selectedHook === limitOrderHook
-              ? "text-cyan-500" // Turkuaz rengi seçildiğinde uygulanacak
+              ? "text-cyan-500"
               : "text-white hover:text-gray-300"
           }`}
           onClick={() => handleHookSelection(limitOrderHook, true)}
