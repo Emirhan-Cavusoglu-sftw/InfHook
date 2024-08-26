@@ -11,7 +11,6 @@ import {
 import { writeContract, readContract } from "@wagmi/core";
 import { config } from "../../../utils/config";
 import { ERC20ABI } from "../../../utils/ERC20ABI.json";
-
 interface TokenInfo {
   tokenAddress: string;
   mintedBy: string;
@@ -73,7 +72,7 @@ const CreateToken = () => {
       console.error(error);
     }
   }
-  
+
   return (
     <div className="flex justify-center items-center mt-8">
       <div className="flex border-2 border-white border-opacity-80 rounded-xl w-[850px] h-[700px]">
@@ -102,7 +101,9 @@ const CreateToken = () => {
             >
               Create Token
             </motion.button>
-            <button className="text-white" onClick={() => getAllawances()}>get allowance</button>
+            <button className="text-white" onClick={() => getAllawances()}>
+              get allowance
+            </button>
           </div>
           <div className="flex flex-col mt-8">
             <h1 className="text-2xl font-bold text-white">All Tokens</h1>

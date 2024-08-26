@@ -10,6 +10,7 @@ import { LiquidiytDeltaABI } from "../../../../utils/readerABI.json";
 import { writeContract, readContract } from "@wagmi/core";
 import { ERC20ABI } from "../../../../utils/ERC20ABI.json";
 import { waitForTransactionReceipt } from "@wagmi/core";
+import LimitOrder from "../../../components/LimitOrder";
 
 interface TokenInfo {
   tokenAddress: string;

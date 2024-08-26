@@ -1,14 +1,27 @@
 "use client";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHook } from "./hookContext";
 
 const Header = () => {
   const router = useRouter();
+  const { selectedHook, setSelectedHook } = useHook();
+  const [isLimitOrderSelected, setIsLimitOrderSelected] = useState(false);
 
   const handleNavigation = (path: string) => {
     router.push(path);
   };
+
+  const handleHookSelection = (hook: string, isLimitOrder: boolean) => {
+    setSelectedHook(hook);
+    setIsLimitOrderSelected(isLimitOrder);
+  };
+
+  const nezlobinHook = "0x7Ce503FC8c2E2531D5aF549bf77f040Ad9c36080"; // Nezlobin
+  const limitOrderHook = "0xLimitOrderHookAddress";
+  const defaultHook = "0x0000000000000000000000000000000000000000";
+
   const id = "0x000000000000000000";
   return (
     <header className="w-full flex justify-between items-center py-4 px-8 bg-transparent">
@@ -37,12 +50,34 @@ const Header = () => {
         >
           Create Token
         </button>
+        {isLimitOrderSelected && (
+          <button
+            onClick={() => handleNavigation("/pages/myOrders")}
+            className="text-white hover:text-gray-300 transition"
+          >
+            My Orders
+          </button>
+        )}
       </div>
       <div className="flex space-x-4 items-center">
-        <button className="text-white hover:text-gray-300 transition">
+      <button
+          className={`transition ${
+            selectedHook === nezlobinHook
+              ? "text-cyan-500" // Turkuaz rengi seçildiğinde uygulanacak
+              : "text-white hover:text-gray-300"
+          }`}
+          onClick={() => handleHookSelection(nezlobinHook, false)}
+        >
           Nezlobin
         </button>
-        <button className="text-white hover:text-gray-300 transition">
+        <button
+          className={`transition ${
+            selectedHook === limitOrderHook
+              ? "text-cyan-500" // Turkuaz rengi seçildiğinde uygulanacak
+              : "text-white hover:text-gray-300"
+          }`}
+          onClick={() => handleHookSelection(limitOrderHook, true)}
+        >
           Limit Order
         </button>
         <ConnectButton.Custom>
