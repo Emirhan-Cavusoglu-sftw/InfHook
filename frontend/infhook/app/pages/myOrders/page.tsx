@@ -17,6 +17,7 @@ import {
   getPositionId,
   cancelOrder,
 } from "../../../utils/functions/placeOrderFunctions";
+import { getAllowance } from "../../../utils/functions/allowanceFuntion";
 
 const eventSignature = keccak256(
   toBytes(
@@ -198,8 +199,38 @@ const MyOrders = () => {
         selectedEvent.args.hooks,
       ];
 
-      const approve1 = await Approve(selectedEvent.args.currency0);
-      const approve2 = await Approve(selectedEvent.args.currency1);
+      const hookAddress = "0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040";
+
+      // Token 0 için allowance kontrolü
+      const allowance1 = await getAllowance(
+        selectedEvent.args.currency0,
+        hookAddress
+      );
+
+      // Token 1 için allowance kontrolü
+      const allowance2 = await getAllowance(
+        selectedEvent.args.currency1,
+        hookAddress
+      );
+
+      let approve1hash, approve2hash;
+
+      // Allowance kontrolü yap, 0 ise approve yap
+      if (BigInt(allowance1) === BigInt(0)) {
+        console.log("Token 0 için onay gerekli.");
+        approve1hash = await Approve(selectedEvent.args.currency0);
+        await waitForTransactionReceipt(config, { hash: approve1hash });
+      } else {
+        console.log("Token 0 için onay gerekli değil.");
+      }
+
+      if (BigInt(allowance2) === BigInt(0)) {
+        console.log("Token 1 için onay gerekli.");
+        approve2hash = await Approve(selectedEvent.args.currency1);
+        await waitForTransactionReceipt(config, { hash: approve2hash });
+      } else {
+        console.log("Token 1 için onay gerekli değil.");
+      }
 
       try {
         const result = await placeOrder(

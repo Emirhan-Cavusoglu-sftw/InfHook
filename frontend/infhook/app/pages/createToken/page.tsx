@@ -8,9 +8,7 @@ import {
   mintToken,
   getBalance,
 } from "../../../utils/functions/createTokenFunctions";
-import { writeContract, readContract } from "@wagmi/core";
-import { config } from "../../../utils/config";
-import { ERC20ABI } from "../../../utils/ERC20ABI.json";
+
 interface TokenInfo {
   tokenAddress: string;
   mintedBy: string;
@@ -56,23 +54,6 @@ const CreateToken = () => {
     }
   };
 
-  async function getAllawances() {
-    try {
-      const allowance = await readContract(config, {
-        abi: ERC20ABI,
-        address: tokenInfo[0].tokenAddress,
-        functionName: "allowance",
-        args: [
-          "0x5167e9746264C5820f5B5741461EC2c2f1FdDA0f",
-          "0x7b1d96AadFD510B24D46f3371e9b2dFA1963BB11",
-        ],
-      });
-      console.log("Allowance: ", allowance);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   return (
     <div className="flex justify-center items-center mt-8">
       <div className="flex border-2 border-white border-opacity-80 rounded-xl w-[850px] h-[700px]">
@@ -101,9 +82,6 @@ const CreateToken = () => {
             >
               Create Token
             </motion.button>
-            <button className="text-white" onClick={() => getAllawances()}>
-              get allowance
-            </button>
           </div>
           <div className="flex flex-col mt-8">
             <h1 className="text-2xl font-bold text-white">All Tokens</h1>
