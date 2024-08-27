@@ -3,16 +3,8 @@ import React, { useEffect, useState } from "react";
 import { PoolManagerABI } from "../../../utils/poolManagerABI.json";
 import { decodeEventLog } from "viem";
 import { keccak256, toBytes } from "viem";
-import {
-  addLiquidity,
-  getLiquidityDelta,
-  Approve,
-} from "../../../utils/functions/addLiquidityFunctions";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { config } from "../../../utils/config";
 import { useHook } from "../../components/hookContext";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 const eventSignature = keccak256(
   toBytes(
@@ -37,22 +29,17 @@ interface Event {
 
 const Explore = () => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [token0Amount, setToken0Amount] = useState<string>("");
-  const [token1Amount, setToken1Amount] = useState<string>("");
-  const [lowerPrice, setLowerPrice] = useState<string>("");
-  const [upperPrice, setUpperPrice] = useState<string>("");
   const { selectedHook } = useHook();
   const router = useRouter();
 
   console.log("Selected Hook:", selectedHook);
 
-  // const handleNavigationToPool = (pool) => {
-  //   router.push(
-  //     `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
-  //   );
-  // };
+  const handleNavigationToPool = (pool) => {
+    router.push(
+      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
+    );
+  };
 
   async function getEvents() {
     try {
@@ -98,76 +85,6 @@ const Explore = () => {
     }
   }
 
-  const calculateTick = (
-    price: number,
-    tickSpacing: number,
-    roundUp: boolean
-  ): number => {
-    const tick = Math.log(price) / Math.log(1.0001);
-    if (roundUp) {
-      // Upper tick: round up
-      return Math.ceil(tick / tickSpacing) * tickSpacing;
-    } else {
-      // Lower tick: round down
-      return Math.floor(tick / tickSpacing) * tickSpacing;
-    }
-  };
-
-  const handleAddLiquidity = async () => {
-    if (!selectedEvent) return;
-
-    const lowerTick = calculateTick(
-      Number(lowerPrice),
-      selectedEvent.args.tickSpacing,
-      false
-    );
-    const upperTick = calculateTick(
-      Number(upperPrice),
-      selectedEvent.args.tickSpacing,
-      true
-    );
-
-    console.log("Lower Tick:", lowerTick);
-    console.log("Upper Tick:", upperTick);
-
-    const approve1hash = await Approve(selectedEvent.args.currency0);
-    const approve2hash = await Approve(selectedEvent.args.currency1);
-
-    const transactionReceipt = await waitForTransactionReceipt(config, {
-      hash: approve1hash,
-    });
-    const transactionReceipt2 = await waitForTransactionReceipt(config, {
-      hash: approve2hash,
-    });
-
-    const liquidityDelta = await getLiquidityDelta(
-      [
-        selectedEvent.args.currency0,
-        selectedEvent.args.currency1,
-        selectedEvent.args.fee,
-        selectedEvent.args.tickSpacing,
-        selectedEvent.args.hooks,
-      ],
-      lowerTick,
-      upperTick,
-      token0Amount,
-      token1Amount
-    );
-
-    await addLiquidity(
-      [
-        selectedEvent.args.currency0,
-        selectedEvent.args.currency1,
-        selectedEvent.args.fee,
-        selectedEvent.args.tickSpacing,
-        selectedEvent.args.hooks,
-      ],
-      [lowerTick, upperTick, liquidityDelta]
-    );
-
-    setIsPopupOpen(false); // Close the popup after adding liquidity
-  };
-
   useEffect(() => {
     getEvents();
   }, []);
@@ -179,7 +96,7 @@ const Explore = () => {
           <div
             key={index}
             className="bg-neutral-800 text-white rounded-lg shadow-md p-6 mb-6"
-            // onClick={() => handleNavigationToPool(event)}
+            onClick={() => handleNavigationToPool(event)}
           >
             <h3 className="text-xl font-bold mb-4">
               Event Name: {event.eventName}
@@ -208,76 +125,10 @@ const Explore = () => {
                 {event.args.tickSpacing}
               </p>
             </div>
-            <button
-              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
-              onClick={() => {
-                setSelectedEvent(event);
-                setIsPopupOpen(true);
-              }}
-            >
-              Add Liquidity
-            </button>
           </div>
         ))
       ) : (
         <p className="text-center text-gray-400">No events found</p>
-      )}
-      {isPopupOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-xl font-bold mb-4">Add Liquidity</h3>
-            <div className="mb-4">
-              <label className="block text-gray-700">Token 0 Amount</label>
-              <input
-                type="text"
-                value={token0Amount}
-                onChange={(e) => setToken0Amount(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Token 1 Amount</label>
-              <input
-                type="text"
-                value={token1Amount}
-                onChange={(e) => setToken1Amount(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Lower Price</label>
-              <input
-                type="text"
-                value={lowerPrice}
-                onChange={(e) => setLowerPrice(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Upper Price</label>
-              <input
-                type="text"
-                value={upperPrice}
-                onChange={(e) => setUpperPrice(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mr-2"
-                onClick={handleAddLiquidity}
-              >
-                Confirm
-              </button>
-              <button
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded-lg"
-                onClick={() => setIsPopupOpen(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
