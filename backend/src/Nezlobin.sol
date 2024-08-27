@@ -24,7 +24,6 @@ contract Nezlobin is BaseHook {
     mapping(PoolId => uint256) public poolToTimeStamp;
     mapping(PoolId => int24) public poolToTick;
 
-    
     // Initialize BaseHook parent contract in the constructor
     constructor(IPoolManager _poolManager) BaseHook(_poolManager) {
         manager = _poolManager;
@@ -86,8 +85,17 @@ contract Nezlobin is BaseHook {
             uint24 tickDelta = tickDeltaSigned >= 0
                 ? uint24(tickDeltaSigned)
                 : uint24(int24(-tickDeltaSigned));
-            
-            
+            if (tickDelta == 0) {
+                return (
+                    this.beforeSwap.selector,
+                    BeforeSwapDeltaLibrary.ZERO_DELTA,
+                    0
+                );
+            }
+            uint24 newFee = calculateDynamicFee(key, tickDelta, params);
+
+            poolManager.updateDynamicLPFee(key, newFee);
+            poolToTick[PoolIdLibrary.toId(key)] = currentTick;
         }
         return (this.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
@@ -99,7 +107,7 @@ contract Nezlobin is BaseHook {
         return tick;
     }
 
-     function calculateDynamicFee(
+    function calculateDynamicFee(
         PoolKey calldata pool,
         uint24 delta,
         IPoolManager.SwapParams calldata params
@@ -107,10 +115,18 @@ contract Nezlobin is BaseHook {
         uint24 c = (MULTIPLIER * BASE_FEE) / (delta * SCALE);
         uint24 beta = c * delta;
 
-        return BASE_FEE + beta;
+        if (!params.zeroForOne) {
+            uint24 newFee = beta + BASE_FEE;
+            return newFee;
+        } else {
+            // Check to avoid underflow
+            if (beta > BASE_FEE) {
+                return MIN_FEE;
+            }
+            uint24 newFee = BASE_FEE - beta;
+            return newFee;
+        }
     }
-
-   
 
     function increment() public {
         counter++;
