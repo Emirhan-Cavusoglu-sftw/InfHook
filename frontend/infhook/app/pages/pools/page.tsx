@@ -13,7 +13,6 @@ import {
   getBalance,
   getTokenInfo,
 } from "../../../utils/functions/createTokenFunctions";
-import { ERC20ABI } from "../../../utils/ERC20ABI.json";
 
 const eventSignature = keccak256(
   toBytes(
@@ -53,16 +52,24 @@ const Pools = () => {
     { name: string; symbol: string }[]
   >([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
- 
-  useEffect(() => {
-    getEvents();
-  }, [selectedHook]);
 
   useEffect(() => {
     fetchTokenInfo();
   }, []);
 
+  useEffect(() => {
+    if (selectedHook && tokenInfo.length > 0) {
+      getEvents(); // `selectedHook` değeri ve token bilgileri hazır olduğunda havuzları çek
+    }
+  }, [selectedHook, tokenInfo]);
+
   console.log("Selected Hook:", selectedHook);
+
+  const handleNavigationToPool = (pool) => {
+    router.push(
+      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
+    );
+  };
 
   async function getEvents() {
     try {
@@ -112,6 +119,7 @@ const Pools = () => {
 
   const fetchTokenInfo = async () => {
     const tokens = await getTokenInfo(setTokenInfo);
+    getEvents();
   };
 
   const handleNavigation = (path: string) => {
@@ -169,6 +177,7 @@ const Pools = () => {
                   <li
                     key={index}
                     className="text-white text-lg bg-neutral-800 p-4 rounded-lg"
+                    onClick={() => handleNavigationToPool(events)}
                   >
                     {token0?.symbol}/{token1?.symbol}
                   </li>
