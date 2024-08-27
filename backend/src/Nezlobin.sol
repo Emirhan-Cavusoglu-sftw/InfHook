@@ -17,7 +17,10 @@ contract Nezlobin is BaseHook {
     uint256 public counter = 3;
     error MustUseDynamicFee();
     IPoolManager public manager;
-    
+    uint24 public constant SCALE = 1000;
+    uint24 public constant MULTIPLIER = 750; // 0.75
+    uint24 public constant BASE_FEE = 3000; // 0.03%
+    uint24 public constant MIN_FEE = 500; // 0.005%
     mapping(PoolId => uint256) public poolToTimeStamp;
     mapping(PoolId => int24) public poolToTick;
 
@@ -94,6 +97,17 @@ contract Nezlobin is BaseHook {
         PoolId id = PoolIdLibrary.toId(key);
         (, int24 tick, , ) = StateLibrary.getSlot0(manager, id);
         return tick;
+    }
+
+     function calculateDynamicFee(
+        PoolKey calldata pool,
+        uint24 delta,
+        IPoolManager.SwapParams calldata params
+    ) public pure returns (uint24) {
+        uint24 c = (MULTIPLIER * BASE_FEE) / (delta * SCALE);
+        uint24 beta = c * delta;
+
+        return BASE_FEE + beta;
     }
 
    
