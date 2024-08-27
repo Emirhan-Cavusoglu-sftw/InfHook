@@ -48,11 +48,11 @@ const Explore = () => {
 
   console.log("Selected Hook:", selectedHook);
 
-  const handleNavigationToPool = (pool) => {
-    router.push(
-      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
-    );
-  };
+  // const handleNavigationToPool = (pool) => {
+  //   router.push(
+  //     `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
+  //   );
+  // };
 
   async function getEvents() {
     try {
@@ -98,23 +98,37 @@ const Explore = () => {
     }
   }
 
-  const calculateTick = (price: number, tickSpacing: number): number => {
+  const calculateTick = (
+    price: number,
+    tickSpacing: number,
+    roundUp: boolean
+  ): number => {
     const tick = Math.log(price) / Math.log(1.0001);
-    return Math.ceil(tick / tickSpacing) * tickSpacing;
+    if (roundUp) {
+      // Upper tick: round up
+      return Math.ceil(tick / tickSpacing) * tickSpacing;
+    } else {
+      // Lower tick: round down
+      return Math.floor(tick / tickSpacing) * tickSpacing;
+    }
   };
-  console.log("Tick:", calculateTick(0.3, 10000));
 
   const handleAddLiquidity = async () => {
     if (!selectedEvent) return;
 
     const lowerTick = calculateTick(
       Number(lowerPrice),
-      selectedEvent.args.tickSpacing
+      selectedEvent.args.tickSpacing,
+      false
     );
     const upperTick = calculateTick(
       Number(upperPrice),
-      selectedEvent.args.tickSpacing
+      selectedEvent.args.tickSpacing,
+      true
     );
+
+    console.log("Lower Tick:", lowerTick);
+    console.log("Upper Tick:", upperTick);
 
     const approve1hash = await Approve(selectedEvent.args.currency0);
     const approve2hash = await Approve(selectedEvent.args.currency1);
@@ -165,7 +179,7 @@ const Explore = () => {
           <div
             key={index}
             className="bg-neutral-800 text-white rounded-lg shadow-md p-6 mb-6"
-            onClick={() => handleNavigationToPool(event)}
+            // onClick={() => handleNavigationToPool(event)}
           >
             <h3 className="text-xl font-bold mb-4">
               Event Name: {event.eventName}

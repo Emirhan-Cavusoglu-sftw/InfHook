@@ -2,9 +2,11 @@
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { useHook } from "../../components/hookContext";
 
 const AddLiquidity = () => {
   const searchParams = useSearchParams();
+  const { selectedHook } = useHook();
 
   // Pool bilgilerini URL parametrelerinden alıyoruz
   const poolId = searchParams.get("id");
@@ -42,7 +44,9 @@ const AddLiquidity = () => {
           <p className="text-lg text-white">{tickSpacing}</p>
         </div>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-300">Sqrt Price X96:</h2>
+          <h2 className="text-xl font-semibold text-gray-300">
+            Sqrt Price X96:
+          </h2>
           <p className="text-lg text-white">{sqrtPriceX96}</p>
         </div>
         <div className="mb-6">
