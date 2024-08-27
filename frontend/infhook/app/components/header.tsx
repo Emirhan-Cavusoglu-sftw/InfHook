@@ -20,7 +20,7 @@ const Header = () => {
 
   const nezlobinHook = "0x7Ce503FC8c2E2531D5aF549bf77f040Ad9c36080"; // Nezlobin
   const limitOrderHook = "0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040"; // Limit Order
-  const defaultHook = "0x0000000000000000000000000000000000000000";
+  const defaultHook = "0x0000000000000000000000000000000000000000"; //UniswapV4
 
   return (
     <header className="w-full flex justify-between items-center py-4 px-8 bg-transparent">
@@ -59,7 +59,17 @@ const Header = () => {
         )}
       </div>
       <div className="flex space-x-4 items-center">
-      <button
+        <button
+          className={`transition ${
+            selectedHook === defaultHook
+              ? "text-cyan-500"
+              : "text-white hover:text-gray-300"
+          }`}
+          onClick={() => handleHookSelection(defaultHook, false)}
+        >
+          UniswapV4
+        </button>
+        <button
           className={`transition ${
             selectedHook === nezlobinHook
               ? "text-cyan-500"

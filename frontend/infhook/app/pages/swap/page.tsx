@@ -11,6 +11,7 @@ import { writeContract, readContract } from "@wagmi/core";
 import { ERC20ABI } from "../../../utils/ERC20ABI.json";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { useHook } from "../../components/hookContext";
+import { getAllowance } from "../../../utils/functions/allowanceFuntion";
 
 interface TokenInfo {
   tokenAddress: string;
@@ -55,6 +56,9 @@ const Swap = () => {
   const [selectedPool, setSelectedPool] = useState<Event | null>(null);
   const { selectedHook } = useHook();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [poolSlot, setPoolSlot] = useState<any[]>([]);
+  const [lpFee, setLpFee] = useState<string | null>(null);
+  const [amountOut, setAmountOut] = useState("");
 
   console.log("Selected Hook:", selectedHook);
 
@@ -178,9 +182,43 @@ const Swap = () => {
       return;
     }
 
+    const swapAddress = "0xcA116c91F47E6c360E80921a83bd6971c6C8f1a4";
     try {
-      const approve1 = await Approve(selectedPool.args.currency0);
-      const approve2 = await Approve(selectedPool.args.currency1);
+      const allowance1 = await getAllowance(
+        selectedPool.args.currency0,
+        swapAddress
+      );
+      const allowance2 = await getAllowance(
+        selectedPool.args.currency1,
+        swapAddress
+      );
+
+      let approve1 = true; // Default olarak true, çünkü eğer allowance 0 değilse approval gerekmiyor.
+      let approve2 = true; // Default olarak true, çünkü eğer allowance 0 değilse approval gerekmiyor.
+
+      // Allowance kontrolü yap
+      if (BigInt(allowance1) === BigInt(0)) {
+        console.log("Token 1 için onay gerekli.");
+        approve1 = await Approve(selectedPool.args.currency0);
+        if (!approve1) {
+          console.error("Token 1 için onay işlemi başarısız oldu.");
+          return;
+        }
+      } else {
+        console.log("Token 1 için onay gerekli değil.");
+      }
+
+      if (BigInt(allowance2) === BigInt(0)) {
+        console.log("Token 2 için onay gerekli.");
+        approve2 = await Approve(selectedPool.args.currency1);
+        if (!approve2) {
+          console.error("Token 2 için onay işlemi başarısız oldu.");
+          return;
+        }
+      } else {
+        console.log("Token 2 için onay gerekli değil.");
+      }
+
       console.log("Selected Pool:", selectedPool);
       console.log("ZeroForOne:", zeroForOne);
       console.log("SqrtPriceLimitX96:", sqrtPriceLimitX96);
@@ -224,6 +262,10 @@ const Swap = () => {
         ],
       });
       console.log(slot);
+      setPoolSlot([slot]);
+      if (slot && slot[3]) {
+        setLpFee(slot[3].toString()); // Set the lpFee state with the third index value
+      }
     } catch (error) {
       console.error("Error fetching or processing data:", error);
     }
@@ -254,9 +296,30 @@ const Swap = () => {
     }
   }
 
+  useEffect(() => {
+    if (selectedPool && amountSpecified && poolSlot.length > 0) {
+      // Get sqrtPrice from getSlot response
+      const sqrtPriceX96 = BigInt(String(poolSlot[0][0]));
+
+      // Normalize the sqrtPriceX96 value by dividing by 2^96
+      const sqrtPrice = Number(sqrtPriceX96) / Math.pow(2, 96);
+
+      // Calculate the price by squaring the normalized sqrtPrice
+      const price = sqrtPrice * sqrtPrice;
+
+      console.log("Calculated Price:", price);
+
+      // Calculate the amount out based on the input amount and price
+      const calculatedAmountOut = parseFloat(amountSpecified) * price;
+
+      // Update the amountOut state
+      setAmountOut(calculatedAmountOut.toFixed(6)); // Round to 6 decimal places
+    }
+  }, [amountSpecified, selectedPool, poolSlot]);
+
   return (
     <div className="flex justify-center items-center mt-28">
-      <div className="bg-neutral-900 w-[500px] h-[440px] rounded-3xl flex flex-col items-center relative">
+      <div className="bg-neutral-900 w-[500px] h-[460px] rounded-3xl flex flex-col items-center relative">
         <h1 className="p-4 text-lg text-white opacity-60 absolute top-0 left-4">
           Swap
         </h1>
@@ -291,15 +354,29 @@ const Swap = () => {
                   onClick={openPoolSelectPopup}
                 >
                   {selectedPool
-                    ? `${
-                        tokens.find(
-                          (t) => t.tokenAddress === selectedPool.args.currency0
-                        )?.symbol
-                      }/${
-                        tokens.find(
-                          (t) => t.tokenAddress === selectedPool.args.currency1
-                        )?.symbol
-                      }`
+                    ? zeroForOne
+                      ? `${
+                          tokens.find(
+                            (t) =>
+                              t.tokenAddress === selectedPool.args.currency0
+                          )?.symbol
+                        }/${
+                          tokens.find(
+                            (t) =>
+                              t.tokenAddress === selectedPool.args.currency1
+                          )?.symbol
+                        }`
+                      : `${
+                          tokens.find(
+                            (t) =>
+                              t.tokenAddress === selectedPool.args.currency1
+                          )?.symbol
+                        }/${
+                          tokens.find(
+                            (t) =>
+                              t.tokenAddress === selectedPool.args.currency0
+                          )?.symbol
+                        }`
                     : "Select Pool"}
                 </button>
               </div>
@@ -323,6 +400,7 @@ const Swap = () => {
                   type="number"
                   className="bg-transparent w-[200px] h-12 p-2 text-white text-3xl appearance-none focus:outline-none"
                   placeholder="0"
+                  value={amountOut}
                   readOnly
                   style={{
                     MozAppearance: "textfield",
@@ -365,6 +443,11 @@ const Swap = () => {
         >
           Swap
         </button>
+        {lpFee && (
+          <div className="mt-2 text-white opacity-60 text-sm">
+            LpFee = {lpFee}
+          </div>
+        )}
 
         {/* Pool Select Popup */}
         {isPopupVisible && (
