@@ -466,7 +466,6 @@ const MyOrders = () => {
               <input
                 type="number"
                 placeholder="Enter Tick"
-                value={tickToSellAt}
                 onChange={(e) => setTickToSellAt(Number(e.target.value))}
                 className="p-3 rounded bg-neutral-700 text-white w-full"
                 style={{
@@ -490,7 +489,12 @@ const MyOrders = () => {
               type="text"
               placeholder="Enter Price"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => {
+                const inputPrice = e.target.value;
+                if (parseFloat(inputPrice) >= 0 || inputPrice === "") {
+                  setPrice(inputPrice);
+                }
+              }}
               className="p-3 rounded bg-neutral-700 text-white w-full"
             />
           )}
