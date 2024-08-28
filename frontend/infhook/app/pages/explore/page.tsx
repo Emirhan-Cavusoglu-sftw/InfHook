@@ -45,12 +45,13 @@ const Explore = () => {
   const [tokenInfo, setTokenInfo] = useState<TokenInfo[]>([]);
   const [poolSlot, setPoolSlot] = useState<any[]>([]);
   const [tickPrices, setTickPrices] = useState<{ [key: string]: number }>({});
+  const [price, setPrice] = useState<number>(0);
 
   console.log("Selected Hook:", selectedHook);
 
   const handleNavigationToPool = (pool) => {
     router.push(
-      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
+      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}&price=${price}&hooks=${pool.args.hooks}&tokenSymbol1=${getTokenSymbol(pool.args.currency0)}&tokenSymbol2=${getTokenSymbol(pool.args.currency1)}`
     );
   };
 
@@ -153,6 +154,7 @@ const Explore = () => {
           ...prevPrices,
           [id]: price,
         }));
+        setPrice(price);
       } else {
         console.error("Tick is not a number:", tick);
       }

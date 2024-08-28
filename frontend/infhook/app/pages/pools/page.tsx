@@ -68,8 +68,17 @@ const Pools = () => {
   console.log("Selected Hook:", selectedHook);
 
   const handleNavigationToPool = (pool) => {
+    const token0 = tokenInfo.find(
+      (token) => token.tokenAddress === pool.args.currency0
+    );
+    const token1 = tokenInfo.find(
+      (token) => token.tokenAddress === pool.args.currency1
+    );
+
+    const tokenSymbol1 = token0 ? token0.symbol : "Unknown";
+    const tokenSymbol2 = token1 ? token1.symbol : "Unknown";
     router.push(
-      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}`
+      `/pages/addLiquidity?id=${pool.args.id}&token0=${pool.args.currency0}&token1=${pool.args.currency1}&fee=${pool.args.fee}&tickSpacing=${pool.args.tickSpacing}&sqrtPriceX96=${pool.args.sqrtPriceX96}&tick=${pool.args.tick}&price=${tickPrices}&hooks=${pool.args.hooks}&tokenSymbol1=${tokenSymbol1}&tokenSymbol2=${tokenSymbol2}`
     );
   };
 

@@ -12,6 +12,9 @@ import { ERC20ABI } from "../../../utils/ERC20ABI.json";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { useHook } from "../../components/hookContext";
 import { getAllowance } from "../../../utils/functions/allowanceFuntion";
+import { getBalance } from "../../../utils/functions/createTokenFunctions";
+import { motion, useAnimation } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 
 interface TokenInfo {
   tokenAddress: string;
@@ -59,7 +62,7 @@ const Swap = () => {
   const [poolSlot, setPoolSlot] = useState<any[]>([]);
   const [lpFee, setLpFee] = useState<string | null>(null);
   const [amountOut, setAmountOut] = useState("");
-
+  const [balance, setBalance] = useState<number | null>(null)
   console.log("Selected Hook:", selectedHook);
 
   useEffect(() => {
@@ -73,6 +76,16 @@ const Swap = () => {
       getSlot();
     }
   }, [selectedPool, zeroForOne]);
+
+  async function fetchBalances() {
+    const updatedEvents = await Promise.all(
+      filteredEvents.map(async (event) => {
+        const balance = await getBalance(event.args.currency0);
+        return { ...event, balance };
+      })
+    );
+    setFilteredEvents(updatedEvents);
+  }
 
   async function getEvents() {
     try {
