@@ -275,16 +275,13 @@ const Swap = () => {
 
   useEffect(() => {
     if (selectedPool && amountSpecified && poolSlot.length > 0) {
-      // Get sqrtPrice from getSlot response
-      const sqrtPriceX96 = BigInt(String(poolSlot[0][0]));
+      // Extract the tick value from the getSlot response (1st index)
+      const tick = Number(poolSlot[0][1]);
 
-      // Normalize the sqrtPriceX96 value by dividing by 2^96
-      const sqrtPrice = Number(sqrtPriceX96) / Math.pow(2, 96);
+      // Calculate the price using the tick formula: price = 1.0001 ^ tick
+      const price = Math.pow(1.0001, tick);
 
-      // Calculate the price by squaring the normalized sqrtPrice
-      const price = sqrtPrice * sqrtPrice;
-
-      console.log("Calculated Price:", price);
+      console.log("Calculated Price (from tick):", price);
 
       // Calculate the amount out based on the input amount and price
       const calculatedAmountOut = parseFloat(amountSpecified) * price;
@@ -296,7 +293,9 @@ const Swap = () => {
 
   return (
     <div className="flex justify-center items-center mt-28">
-      <div className={`bg-neutral-900 w-[500px] h-[460px] rounded-3xl flex flex-col items-center relative shadow-cyan-400 shadow-md`}>
+      <div
+        className={`bg-neutral-900 w-[500px] h-[460px] rounded-3xl flex flex-col items-center relative shadow-cyan-400 shadow-md`}
+      >
         <h1 className="p-4 text-lg text-white opacity-60 absolute top-0 left-4">
           Swap
         </h1>
@@ -433,37 +432,37 @@ const Swap = () => {
               <path
                 d="M3.5 22V5C3.5 3 4.84 2 6.5 2H14.5C16.16 2 17.5 3 17.5 5V22H3.5Z"
                 stroke="#ffffff"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M2 22H19"
                 stroke="#ffffff"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M8.39 9.99998H12.62C13.66 9.99998 14.51 9.49999 14.51 8.10999V6.87999C14.51 5.48999 13.66 4.98999 12.62 4.98999H8.39C7.35 4.98999 6.5 5.48999 6.5 6.87999V8.10999C6.5 9.49999 7.35 9.99998 8.39 9.99998Z"
                 stroke="#ffffff"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M6.5 13H9.5"
                 stroke="#ffffff"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M17.5 16.01L22 16V10L20 9"
                 stroke="#ffffff"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>{" "}
             LpFee = {lpFee}
