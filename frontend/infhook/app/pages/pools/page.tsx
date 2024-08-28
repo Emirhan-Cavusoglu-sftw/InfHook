@@ -153,7 +153,7 @@ const Pools = () => {
         <div className="flex justify-between items-center w-full mb-4">
           <h1 className="text-2xl font-bold text-white">Pools</h1>
           <motion.button
-            className="bg-cyan-900 opacity-80 text-white py-2 px-4 rounded-xl"
+            className="bg-blue-800 hover:bg-blue-950 w-36 opacity-80 text-white py-2 px-4 rounded-xl"
             onClick={() => handleNavigation("/pages/createPool")}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -162,7 +162,7 @@ const Pools = () => {
           </motion.button>
         </div>
 
-        <div className="bg-transparent border-white border-[0.05px] border-opacity-30 p-6 rounded-lg shadow-lg w-full">
+        <div className="bg-transparent border-gray-500 border-opacity-80 border-2 p-6 rounded-lg shadow-lg shadow-cyan-400 w-full overflow-y-auto custom-scrollbar max-h-[400px]">
           {filteredPools.length > 0 ? (
             <ul className="space-y-2">
               {filteredPools.map((events, index) => {
@@ -176,10 +176,16 @@ const Pools = () => {
                 return (
                   <li
                     key={index}
-                    className="text-white text-lg bg-neutral-800 p-4 rounded-lg"
+                    className="text-white text-lg bg-gray-800 hover:bg-blue-800 transition p-4 rounded-lg cursor-pointer flex flex-row justify-between "
                     onClick={() => handleNavigationToPool(events)}
                   >
-                    {token0?.symbol}/{token1?.symbol}
+                    <p>
+                      {" "}
+                      {token0?.name}/{token1?.name}{" "}
+                    </p>{" "}
+                    <p>
+                      ({token0?.symbol}/{token1?.symbol})
+                    </p>
                   </li>
                 );
               })}
