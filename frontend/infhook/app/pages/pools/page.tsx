@@ -13,6 +13,7 @@ import {
   getBalance,
   getTokenInfo,
 } from "../../../utils/functions/createTokenFunctions";
+import { LiquidiytDeltaABI } from "../../../utils/readerABI.json";
 
 const eventSignature = keccak256(
   toBytes(
@@ -52,6 +53,7 @@ const Pools = () => {
     { name: string; symbol: string }[]
   >([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
+  const [tickPrices, setTickPrices] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     fetchTokenInfo();
@@ -145,6 +147,47 @@ const Pools = () => {
     );
 
     setFilteredPools(filtered);
+
+    // Fetch and calculate the price for each filtered pool
+    for (let pool of filtered) {
+      getSlotAndCalculatePrice(pool);
+    }
+  };
+
+  async function getSlotAndCalculatePrice(events: Event[]) {
+    try {
+      const slot: any[] = await readContract(config, {
+        abi: LiquidiytDeltaABI,
+        address: "0x3635b6d0b150d438163eaf7417812febc4030f2c",
+        functionName: "getSlot0",
+        args: [
+          [
+            events.args.currency0,
+            events.args.currency1,
+            events.args.fee,
+            events.args.tickSpacing,
+            events.args.hooks,
+          ],
+          "0xccB5a2D19A67a1a5105F674465CAe2c5Ab1496Ac",
+        ],
+      });
+      const tick = Number(slot[1]); // Ensure tick is a number
+      if (!isNaN(tick)) {
+        const price = calculatePriceFromTick(tick);
+        setTickPrices((prevPrices) => ({
+          ...prevPrices,
+          [events.args.id]: price,
+        }));
+      } else {
+        console.error("Tick is not a number:", tick);
+      }
+    } catch (error) {
+      console.error("Error fetching or processing data:", error);
+    }
+  }
+
+  const calculatePriceFromTick = (tick: number) => {
+    return Math.pow(1.0001, tick);
   };
 
   return (
@@ -172,20 +215,28 @@ const Pools = () => {
                 const token1 = tokenInfo.find(
                   (token) => token.tokenAddress === events.args.currency1
                 );
+                const price = tickPrices[events.args.id];
 
                 return (
                   <li
                     key={index}
-                    className="text-white text-lg bg-gray-800 hover:bg-blue-800 transition p-4 rounded-lg cursor-pointer flex flex-row justify-between "
+                    className="text-white text-xl bg-gray-800 hover:bg-blue-800 transition p-4 rounded-lg cursor-pointer flex flex-row justify-between "
                     onClick={() => handleNavigationToPool(events)}
                   >
-                    <p>
-                      {" "}
-                      {token0?.name}/{token1?.name}{" "}
-                    </p>{" "}
-                    <p>
-                      ({token0?.symbol}/{token1?.symbol})
-                    </p>
+                    <div>
+                      <p>
+                        {token0?.name}/{token1?.name} ({token0?.symbol}/
+                        {token1?.symbol})
+                      </p>
+                      {price !== undefined ? (
+                        <p className="text-xs mt-2">
+                          1 {token0?.symbol} = {price.toFixed(6)}{" "}
+                          {token1?.symbol}
+                        </p>
+                      ) : (
+                        <p>Loading price...</p>
+                      )}
+                    </div>
                   </li>
                 );
               })}

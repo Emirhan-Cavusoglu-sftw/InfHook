@@ -465,7 +465,7 @@ const Swap = () => {
                 strokeLinejoin="round"
               />
             </svg>{" "}
-            LpFee = {lpFee}
+            Swap Fee = {lpFee}
           </div>
         )}
 
