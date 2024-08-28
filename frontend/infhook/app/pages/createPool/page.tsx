@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 
 const hookData = "0x";
 
+const dynamicFee = 8388608;
 interface TokenInfo {
   tokenAddress: string;
   mintedBy: string;
@@ -27,9 +28,10 @@ const CreatePool = () => {
   const [currency1, setCurrency1] = useState("");
   const [fee, setFee] = useState("");
   const [tickSpacing, setTickSpacing] = useState("");
-  const [selectedHook, setSelectedHook] = useState("");
+  const [selectedHookk, setSelectedHook] = useState("");
   const [sqrtPriceX96, setSqrtPriceX96] = useState("");
   const [tokenInfo, setTokenInfo] = useState<TokenInfo[]>([]);
+  const { selectedHook } = useHook();
 
   useEffect(() => {
     getTokenInfo(setTokenInfo);
@@ -56,7 +58,7 @@ const CreatePool = () => {
       currency1: sortedAddresses[1],
       fee: fee,
       tickSpacing: tickSpacing,
-      hooks: selectedHook,
+      hooks: selectedHookk,
       sqrtPriceX96: sqrtPriceX96,
       hookDat: hookData,
     };
@@ -76,7 +78,7 @@ const CreatePool = () => {
             address1,
             parseFloat(fee),
             parseFloat(tickSpacing),
-            selectedHook,
+            selectedHookk,
           ],
           sqrtPriceX96,
           hookData,
@@ -165,7 +167,7 @@ const CreatePool = () => {
 
         <select
           className="mb-4 p-3 bg-gray-800 text-white w-[800px] rounded-lg border border-gray-600"
-          value={selectedHook}
+          value={selectedHookk}
           onChange={(e) => setSelectedHook(e.target.value)}
         >
           <option value="">Select Hook</option>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useHook } from "../../components/hookContext";
 import { decodeEventLog } from "viem";
 import { keccak256, toBytes } from "viem";
@@ -18,6 +18,9 @@ import {
   cancelOrder,
 } from "../../../utils/functions/placeOrderFunctions";
 import { getAllowance } from "../../../utils/functions/allowanceFuntion";
+import { getTokenInfo } from "../../../utils/functions/createTokenFunctions";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 const eventSignature = keccak256(
   toBytes(
@@ -65,6 +68,13 @@ interface Order {
   claimableTokens: number;
 }
 
+interface TokenInfo {
+  tokenAddress: string;
+  mintedBy: string;
+  name: string;
+  symbol: string;
+}
+
 const MyOrders = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -73,13 +83,69 @@ const MyOrders = () => {
   const [amountIn, setAmountIn] = useState<string>("");
   const [tickToSellAt, setTickToSellAt] = useState<number>(0);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [price, setPrice] = useState<string>("");
+  const [usePrice, setUsePrice] = useState<boolean>(false);
+  const [tokenInfo, setTokenInfo] = useState<TokenInfo[]>([]);
+  const router = useRouter();
+  const [isFirstRender, setIsFirstRender] = useState(true);
 
   console.log("Selected Hook:", selectedHook);
 
+  const { data, isLoading, isFetched } = useQuery({
+    queryKey: ["tokenInfo"],
+    queryFn: async () => {
+      const tokenInfo1 = await getTokenInfo(setTokenInfo);
+      return {
+        tokenInfo1,
+      };
+    },
+  });
+
+  const {
+    data: data2,
+    isLoading: isLoading2,
+    refetch: refetch2,
+    isFetched: isFetched2,
+  } = useQuery({
+    enabled: false,
+    queryKey: ["events"],
+    queryFn: async () => {
+      const events = await getEvents();
+      return {
+        events,
+      };
+    },
+  });
+
+  const {
+    data: data3,
+    isLoading: isLoading3,
+    refetch: refetch3,
+    isFetched: isFetched3,
+  } = useQuery({
+    enabled: false,
+    queryKey: ["orders"],
+    queryFn: async () => {
+      const orders = await getOrders();
+      return {
+        orders,
+      };
+    },
+  });
+
   useEffect(() => {
-    getEvents();
-    getOrders();
-  }, [selectedHook]);
+    if (isFetched) {
+      refetch2();
+    }
+  }, [isFetched]);
+
+  useEffect(() => {
+    if (isFetched2) {
+      refetch3();
+    }
+  }, [isFetched2]);
+
+  console.log("isloading: " + isLoading);
 
   async function getEvents() {
     try {
@@ -91,22 +157,34 @@ const MyOrders = () => {
       const decodedEvents: Event[] = [];
 
       for (let item of data.items) {
-        // Filter events by the specific topic
         if (item.topics[0].toLowerCase() === eventSignature.toLowerCase()) {
           const decodedEvent = decodeEventLog({
             abi: PoolManagerABI,
             data: item.data,
             topics: item.topics.slice(0, 8),
           });
-          console.log(decodedEvent);
 
           if (
             decodedEvent.args.hooks.toLowerCase() === selectedHook.toLowerCase()
           ) {
+            const currency0Symbol =
+              tokenInfo.find(
+                (token) =>
+                  token.tokenAddress.toLowerCase() ===
+                  decodedEvent.args.currency0.toLowerCase()
+              )?.symbol || decodedEvent.args.currency0;
+
+            const currency1Symbol =
+              tokenInfo.find(
+                (token) =>
+                  token.tokenAddress.toLowerCase() ===
+                  decodedEvent.args.currency1.toLowerCase()
+              )?.symbol || decodedEvent.args.currency1;
+
             decodedEvents.push({
               args: {
-                currency0: decodedEvent.args.currency0,
-                currency1: decodedEvent.args.currency1,
+                currency0: currency0Symbol,
+                currency1: currency1Symbol,
                 fee: decodedEvent.args.fee,
                 hooks: decodedEvent.args.hooks,
                 id: decodedEvent.args.id,
@@ -189,8 +267,25 @@ const MyOrders = () => {
     }
   }
 
+  function convertPriceToTick(price: string): number {
+    const priceValue = parseFloat(price);
+
+    // Fiyatı sqrtPrice'a çevir
+    const sqrtPrice = Math.sqrt(priceValue) * Math.pow(2, 96);
+
+    // Tick hesaplama (gerçek değeri almak için)
+    const tick = Math.floor(
+      Math.log(sqrtPrice / Math.pow(2, 96)) / Math.log(Math.sqrt(1.0001))
+    );
+
+    return tick;
+  }
+
+  console.log("Price to Tick: ", convertPriceToTick(price));
+
   async function handlePlaceOrder() {
     if (selectedEvent) {
+      const tick = usePrice ? convertPriceToTick(price) : tickToSellAt;
       const argsArray = [
         selectedEvent.args.currency0,
         selectedEvent.args.currency1,
@@ -241,7 +336,7 @@ const MyOrders = () => {
             selectedEvent.args.tickSpacing,
             selectedEvent.args.hooks,
           ],
-          tickToSellAt,
+          tick,
           zeroForOne,
           amountIn
         );
@@ -316,93 +411,164 @@ const MyOrders = () => {
     }
   }
 
+  function truncateString(str: string, maxLength: number) {
+    if (str.length > maxLength) {
+      return str.slice(0, maxLength) + "...";
+    }
+    return str;
+  }
+
   return (
-    <div className="flex flex-row justify-center items-center bg-transparent space-x-64 mt-24">
-      <div className="flex flex-col bg-neutral-800 w-[500px] h-[600px] rounded-2xl items-center pt-2">
-        <h1 className="text-white text-3xl">Place Order</h1>
-        <h1 className="text-white text-lg pt-8">Select Pool</h1>
-        <select
-          onChange={(e) => {
-            const selectedIndex = e.target.value;
-            setSelectedEvent(events[parseInt(selectedIndex)]);
-          }}
-          className="mt-4 p-2 rounded bg-neutral-700 text-white w-[250px]"
-        >
-          <option value="">Select a Pool</option>
-          {events.map((event, index) => (
-            <option key={index} value={index}>
-              {`Pool: ${event.args.currency0} / ${event.args.currency1} - Fee: ${event.args.fee}`}
-            </option>
-          ))}
-        </select>
-        <h1 className="text-white text-lg pt-8">Tick</h1>
-        <input
-          type="number"
-          placeholder="Enter Tick"
-          value={tickToSellAt}
-          onChange={(e) => setTickToSellAt(Number(e.target.value))}
-          className="mt-4 p-2 rounded bg-neutral-700 text-white"
-        />
-        <h1 className="text-white text-lg pt-8">Amount</h1>
-        <input
-          type="text"
-          placeholder="Enter Amount"
-          value={amountIn}
-          onChange={(e) => setAmountIn(e.target.value)}
-          className="mt-4 p-2 rounded bg-neutral-700 text-white"
-        />
-        <div className="flex mt-4 space-x-4">
+    <div className="flex flex-row justify-center items-center bg-transparent space-x-48 mt-24">
+      <div className="flex flex-col bg-neutral-800 w-[500px] h-[600px] rounded-2xl items-center pt-2 px-6 border-2 border-gray-500 border-opacity-80 shadow-lg shadow-cyan-400">
+        <h1 className="text-white text-3xl mb-8">Place Order</h1>
+
+        <div className="w-full">
+          <h1 className="text-white text-lg mb-2">Select Pool</h1>
+          <select
+            onChange={(e) => {
+              const selectedIndex = e.target.value;
+              setSelectedEvent(events[parseInt(selectedIndex)]);
+            }}
+            className="mb-4 p-3 rounded bg-neutral-700 text-white w-full"
+          >
+            <option value="">Select a Pool</option>
+            {events.map((event, index) => (
+              <option key={index} value={index}>
+                {`Pool: ${event.args.currency0} / ${event.args.currency1} - Fee: ${event.args.fee}`}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="w-full mb-4">
+          <h1 className="text-white text-lg mb-2">Tick or Price</h1>
+          <div className="flex space-x-4 mb-4">
+            <button
+              onClick={() => setUsePrice(false)}
+              className={`p-3 rounded-lg text-white w-full ${
+                !usePrice ? "bg-blue-800" : "bg-neutral-700"
+              }`}
+            >
+              Tick
+            </button>
+            <button
+              onClick={() => setUsePrice(true)}
+              className={`p-3 rounded-lg text-white w-full ${
+                usePrice ? "bg-blue-800" : "bg-neutral-700"
+              }`}
+            >
+              Price
+            </button>
+          </div>
+          {!usePrice ? (
+            <>
+              <input
+                type="number"
+                placeholder="Enter Tick"
+                value={tickToSellAt}
+                onChange={(e) => setTickToSellAt(Number(e.target.value))}
+                className="p-3 rounded bg-neutral-700 text-white w-full"
+                style={{
+                  MozAppearance: "textfield",
+                  WebkitAppearance: "none",
+                }}
+              />
+              <style jsx>{`
+                input[type="number"]::-webkit-inner-spin-button,
+                input[type="number"]::-webkit-outer-spin-button {
+                  -webkit-appearance: none;
+                  margin: 0;
+                }
+                input[type="number"] {
+                  -moz-appearance: textfield;
+                }
+              `}</style>
+            </>
+          ) : (
+            <input
+              type="text"
+              placeholder="Enter Price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="p-3 rounded bg-neutral-700 text-white w-full"
+            />
+          )}
+        </div>
+
+        <div className="w-full mb-4">
+          <h1 className="text-white text-lg mb-2">Amount</h1>
+          <input
+            type="text"
+            placeholder="Enter Amount"
+            value={amountIn}
+            onChange={(e) => setAmountIn(e.target.value)}
+            className="p-3 rounded bg-neutral-700 text-white w-full"
+          />
+        </div>
+
+        <div className="w-full flex space-x-4 mb-8">
           <button
             onClick={() => setZeroForOne(false)}
-            className={`p-2 rounded ${
-              !zeroForOne ? "bg-blue-500" : "bg-neutral-700"
-            } text-white`}
+            className={`p-3 rounded-lg text-white w-full ${
+              !zeroForOne ? "bg-green-500" : "bg-neutral-700"
+            }`}
           >
             Buy
           </button>
           <button
             onClick={() => setZeroForOne(true)}
-            className={`p-2 rounded ${
-              zeroForOne ? "bg-blue-500" : "bg-neutral-700"
-            } text-white`}
+            className={`p-3 rounded-lg text-white w-full ${
+              zeroForOne ? "bg-red-500" : "bg-neutral-700"
+            }`}
           >
             Sell
           </button>
         </div>
+
         <button
           onClick={handlePlaceOrder}
-          className="mt-4 p-2 rounded bg-green-500 text-white"
+          className="p-3 rounded-lg bg-blue-800 hover:bg-blue-950 transition text-white w-full"
         >
           Place Order
         </button>
       </div>
-      <div className="flex flex-col bg-neutral-800 w-[500px] h-[600px] rounded-2xl items-center pt-2">
-        <h1 className="text-white text-3xl">Orders</h1>
-        <ul className="text-white">
-          {orders.map((order, index) => (
-            <li key={index} className="mb-4">
-              <p>
-                {`Order ID: ${order.positionId}, Balance: ${order.balance}, Claimable: ${order.claimableTokens}`}
-              </p>
-              <button
-                onClick={() => handleRedeem(order)}
-                disabled={order.claimableTokens <= 0}
-                className={`mt-2 p-2 rounded ${
-                  order.claimableTokens > 0
-                    ? "bg-green-500"
-                    : "bg-neutral-700 cursor-not-allowed"
-                } text-white`}
+
+      <div className="flex flex-col bg-neutral-800 w-[500px] h-[600px] rounded-2xl items-center pt-2 border-2 border-gray-500 border-opacity-80 shadow-lg shadow-cyan-400">
+        <h1 className="text-white text-3xl mb-4">Orders</h1>
+        <ul className="text-white w-full px-6 space-y-6 overflow-y-auto custom-scrollbar max-h-[600px]">
+          {orders
+            .filter((order) => order.balance > 0) // Balance 0'dan büyük olan order'ları filtreleme
+            .map((order, index) => (
+              <li
+                key={index}
+                className="mb-4 p-4 bg-gray-800 rounded-xl space-x-2 "
               >
-                Redeem
-              </button>
-              <button
-                onClick={() => handleCancelOrder(order)}
-                className="mt-2 p-2 rounded bg-red-500 text-white"
-              >
-                Cancel Order
-              </button>
-            </li>
-          ))}
+                <p className="mb-2">
+                  {`${index + 1}. Order ID: ${truncateString(
+                    String(order.positionId),
+                    10
+                  )}, Balance: ${truncateString(String(order.balance), 10)}`}
+                </p>
+                <button
+                  onClick={() => handleRedeem(order)}
+                  disabled={order.claimableTokens <= 0}
+                  className={`mt-2 p-2 rounded-lg text-white w-48 ${
+                    order.claimableTokens > 0
+                      ? "bg-green-500"
+                      : "bg-neutral-800 cursor-not-allowed"
+                  }`}
+                >
+                  Redeem
+                </button>
+                <button
+                  onClick={() => handleCancelOrder(order)}
+                  className="mt-2 p-2 rounded-lg bg-red-500 text-white w-48"
+                >
+                  Cancel Order
+                </button>
+              </li>
+            ))}
         </ul>
       </div>
     </div>
