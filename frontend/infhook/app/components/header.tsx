@@ -3,6 +3,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useHook } from "./hookContext";
+import Image from "next/image";
+import Link from "next/link";
 
 const Header = () => {
   const router = useRouter();
@@ -30,6 +32,12 @@ const Header = () => {
   return (
     <header className="w-full flex justify-between items-center py-4 px-8 bg-transparent">
       <div className="flex space-x-4">
+        <Link href={"/"}>
+          <div className="flex flex-row space-x-2">
+            <Image src={"/icon.png"} width={50} height={40} alt="InfHook" />
+            <h1 className="text-cyan-400 flex pt-[7px] text-xl">InfHook</h1>
+          </div>
+        </Link>
         <button
           onClick={() => handleNavigation(`/pages/swap/`)}
           className={`text-white hover:text-gray-400 transition`}
