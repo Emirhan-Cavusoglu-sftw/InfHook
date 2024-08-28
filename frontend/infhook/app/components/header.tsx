@@ -6,15 +6,20 @@ import { useHook } from "./hookContext";
 
 const Header = () => {
   const router = useRouter();
-  const { selectedHook, setSelectedHook } = useHook();
+  const { selectedHook, setSelectedHook, selectedColor, setSelectedColor } =
+    useHook();
   const [isLimitOrderSelected, setIsLimitOrderSelected] = useState(false);
 
   const handleNavigation = (path: string) => {
     router.push(path);
   };
-
-  const handleHookSelection = (hook: string, isLimitOrder: boolean) => {
+  const handleHookSelection = (
+    hook: string,
+    color: string,
+    isLimitOrder: boolean
+  ) => {
     setSelectedHook(hook);
+    setSelectedColor(color);
     setIsLimitOrderSelected(isLimitOrder);
   };
 
@@ -27,24 +32,24 @@ const Header = () => {
       <div className="flex space-x-4">
         <button
           onClick={() => handleNavigation(`/pages/swap/`)}
-          className="text-white hover:text-gray-300 transition"
+          className={`text-white hover:text-gray-400 transition`}
         >
           Swap
         </button>
         <button
           onClick={() => handleNavigation("/pages/explore")}
-          className="text-white hover:text-gray-300 transition"
+          className="text-white hover:text-gray-400 transition"
         >
           Explorer
         </button>
         <button
           onClick={() => handleNavigation(`/pages/pools`)}
-          className="text-white hover:text-gray-300 transition"
+          className="text-white hover:text-gray-400 transition"
         >
           My Positions
         </button>
         <button
-          className="text-white hover:text-gray-300 transition"
+          className="text-white hover:text-gray-400 transition"
           onClick={() => handleNavigation(`/pages/createToken`)}
         >
           Create Token
@@ -52,7 +57,7 @@ const Header = () => {
         {isLimitOrderSelected && (
           <button
             onClick={() => handleNavigation("/pages/myOrders")}
-            className="text-white hover:text-gray-300 transition"
+            className="text-white  hover:text-gray-400 transition"
           >
             My Orders
           </button>
@@ -62,30 +67,30 @@ const Header = () => {
         <button
           className={`transition ${
             selectedHook === defaultHook
-              ? "text-cyan-500"
-              : "text-white hover:text-gray-300"
+              ? "text-pink-400 hover:text-gray-400"
+              : "text-white hover:text-gray-400"
           }`}
-          onClick={() => handleHookSelection(defaultHook, false)}
+          onClick={() => handleHookSelection(defaultHook, "pink", false)}
         >
           UniswapV4
         </button>
         <button
           className={`transition ${
             selectedHook === nezlobinHook
-              ? "text-cyan-500"
-              : "text-white hover:text-gray-300"
+              ? "text-cyan-400 hover:text-gray-400"
+              : "text-white hover:text-gray-400"
           }`}
-          onClick={() => handleHookSelection(nezlobinHook, false)}
+          onClick={() => handleHookSelection(nezlobinHook, "cyan", false)}
         >
           Nezlobin
         </button>
         <button
           className={`transition ${
             selectedHook === limitOrderHook
-              ? "text-cyan-500"
-              : "text-white hover:text-gray-300"
+              ? "text-lime-400 hover:text-gray-400"
+              : "text-white hover:text-gray-400"
           }`}
-          onClick={() => handleHookSelection(limitOrderHook, true)}
+          onClick={() => handleHookSelection(limitOrderHook, "lime", true)}
         >
           Limit Order
         </button>

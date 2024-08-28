@@ -3,7 +3,6 @@ import { LimitOrderHookABI } from "../limitOrderHookABI.json";
 import { writeContract, readContract } from "@wagmi/core";
 import { parseEther } from "viem";
 import { getAccount } from "@wagmi/core";
-import { get } from "http";
 
 export async function placeOrder(
   [currency0, currency1, fee, tickSpacing, hooks]: [

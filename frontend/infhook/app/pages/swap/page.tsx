@@ -54,7 +54,7 @@ const Swap = () => {
   const [zeroForOne, setZeroForOne] = useState(true);
   const [sqrtPriceLimitX96, setSqrtPriceLimitX96] = useState<BigInt>(BigInt(0));
   const [selectedPool, setSelectedPool] = useState<Event | null>(null);
-  const { selectedHook } = useHook();
+  const { selectedHook, selectedColor } = useHook();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [poolSlot, setPoolSlot] = useState<any[]>([]);
   const [lpFee, setLpFee] = useState<string | null>(null);
@@ -124,18 +124,6 @@ const Swap = () => {
     await getTokenInfo(setTokenInfo);
   };
 
-  const handleTokenSelect = (token) => {
-    const selectedToken = tokens.find((t) => t.symbol === token);
-    if (activeTokenInput === 1) {
-      setSelectedToken1(token);
-      setToken1Address(selectedToken?.tokenAddress || "");
-    } else {
-      setSelectedToken2(token);
-      setToken2Address(selectedToken?.tokenAddress || "");
-    }
-    setIsPopupVisible(false);
-  };
-
   const fetchsqrtPrivceLimitX96 = async () => {
     if (zeroForOne) {
       setSqrtPriceLimitX96(BigInt(4295128740));
@@ -156,11 +144,6 @@ const Swap = () => {
   console.log("ZeroForOne:", zeroForOne);
   console.log("SqrtPriceLimitX96:", sqrtPriceLimitX96);
 
-  const openTokenSelectPopup = (inputIndex: number) => {
-    setActiveTokenInput(inputIndex);
-    setIsPopupVisible(true);
-  };
-
   const openPoolSelectPopup = () => {
     setIsPopupVisible(true);
   };
@@ -168,12 +151,6 @@ const Swap = () => {
   const handlePoolSelect = (pool: Event) => {
     setSelectedPool(pool);
     setIsPopupVisible(false);
-  };
-
-  const closePopupOnOutsideClick = (e) => {
-    if (e.target.id === "popupOverlay") {
-      setIsPopupVisible(false);
-    }
   };
 
   const handleSwap = async () => {
@@ -319,7 +296,7 @@ const Swap = () => {
 
   return (
     <div className="flex justify-center items-center mt-28">
-      <div className="bg-neutral-900 w-[500px] h-[460px] rounded-3xl flex flex-col items-center relative">
+      <div className={`bg-neutral-900 w-[500px] h-[460px] rounded-3xl flex flex-col items-center relative shadow-cyan-400 shadow-md`}>
         <h1 className="p-4 text-lg text-white opacity-60 absolute top-0 left-4">
           Swap
         </h1>
@@ -350,7 +327,7 @@ const Swap = () => {
                   }
                 `}</style>
                 <button
-                  className="ml-auto bg-cyan-900 opacity-80 rounded-3xl text-white text-xl px-4 py-2"
+                  className={`ml-auto bg-blue-800 opacity-80 rounded-3xl hover:bg-blue-950 transition text-white text-xl px-4 py-2`}
                   onClick={openPoolSelectPopup}
                 >
                   {selectedPool
@@ -418,7 +395,7 @@ const Swap = () => {
                   }
                 `}</style>
                 <button
-                  className="ml-auto bg-cyan-900 opacity-80 rounded-3xl text-white text-xl px-4 py-2"
+                  className={`ml-auto bg-blue-800 opacity-80 rounded-3xl text-white text-xl px-4 py-2`}
                   disabled
                 >
                   {selectedPool
@@ -438,13 +415,57 @@ const Swap = () => {
           </div>
         </div>
         <button
-          className="w-[470px] h-12 bg-cyan-900 opacity-80 rounded-3xl text-white text-lg mt-2"
+          className={`w-[470px] h-12 bg-blue-800 opacity-80 rounded-3xl text-white hover:bg-blue-950 transition font-bold text-lg mt-2`}
           onClick={() => handleSwap()}
         >
           Swap
         </button>
         {lpFee && (
-          <div className="mt-2 text-white opacity-60 text-sm">
+          <div className="mt-2 text-white opacity-60 text-sm flex flex-row">
+            <svg
+              width="20px"
+              height="20px"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="mr-2"
+            >
+              <path
+                d="M3.5 22V5C3.5 3 4.84 2 6.5 2H14.5C16.16 2 17.5 3 17.5 5V22H3.5Z"
+                stroke="#ffffff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M2 22H19"
+                stroke="#ffffff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8.39 9.99998H12.62C13.66 9.99998 14.51 9.49999 14.51 8.10999V6.87999C14.51 5.48999 13.66 4.98999 12.62 4.98999H8.39C7.35 4.98999 6.5 5.48999 6.5 6.87999V8.10999C6.5 9.49999 7.35 9.99998 8.39 9.99998Z"
+                stroke="#ffffff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M6.5 13H9.5"
+                stroke="#ffffff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M17.5 16.01L22 16V10L20 9"
+                stroke="#ffffff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>{" "}
             LpFee = {lpFee}
           </div>
         )}
@@ -456,7 +477,7 @@ const Swap = () => {
             className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 "
             onClick={() => setIsPopupVisible(false)}
           >
-            <div className="bg-neutral-900 w-[500px] h-[550px] rounded-3xl flex flex-col items-center p-4 ">
+            <div className="bg-neutral-900 w-[550px] h-[550px] rounded-3xl flex flex-col items-center p-4 ">
               <div className="w-full flex justify-between items-center ">
                 <h1 className="text-white opacity-60 text-lg">Select a pool</h1>
                 <button
@@ -470,7 +491,7 @@ const Swap = () => {
                 {filteredEvents.map((pool, index) => (
                   <button
                     key={index}
-                    className="w-full p-4 bg-neutral-800 rounded-3xl text-white flex justify-between items-center"
+                    className="w-full p-4 bg-neutral-800 hover:bg-blue-800 transition rounded-3xl text-white flex justify-between items-center"
                     onClick={() => handlePoolSelect(pool)}
                   >
                     <span>

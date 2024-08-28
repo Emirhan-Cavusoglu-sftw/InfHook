@@ -5,6 +5,7 @@ import { decodeEventLog } from "viem";
 import { keccak256, toBytes } from "viem";
 import { useHook } from "../../components/hookContext";
 import { useRouter } from "next/navigation";
+import { getTokenInfo } from "../../../utils/functions/createTokenFunctions";
 
 const eventSignature = keccak256(
   toBytes(
@@ -27,11 +28,19 @@ interface Event {
   eventName: string;
 }
 
+interface TokenInfo {
+  tokenAddress: string;
+  mintedBy: string;
+  name: string;
+  symbol: string;
+}
+
 const Explore = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { selectedHook } = useHook();
   const router = useRouter();
+  const [tokenInfo, setTokenInfo] = useState<TokenInfo[]>([]);
 
   console.log("Selected Hook:", selectedHook);
 
@@ -86,47 +95,37 @@ const Explore = () => {
   }
 
   useEffect(() => {
-    getEvents();
+    getTokenInfo(setTokenInfo);
   }, []);
+
+  useEffect(() => {
+    getEvents();
+  }, [selectedHook]);
+
+  const getTokenSymbol = (tokenAddress: string) => {
+    const token = tokenInfo.find((t) => t.tokenAddress === tokenAddress);
+    return token ? token.symbol : "Unknown";
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
       {events.length > 0 ? (
-        events.map((event, index) => (
-          <div
-            key={index}
-            className="bg-neutral-800 text-white rounded-lg shadow-md p-6 mb-6"
-            onClick={() => handleNavigationToPool(event)}
-          >
-            <h3 className="text-xl font-bold mb-4">
-              Event Name: {event.eventName}
-            </h3>
-            <div className="space-y-2">
-              <p>
-                <span className="font-semibold">Currency 0:</span>{" "}
-                {event.args.currency0}
-              </p>
-              <p>
-                <span className="font-semibold">Currency 1:</span>{" "}
-                {event.args.currency1}
-              </p>
-              <p>
-                <span className="font-semibold">Fee:</span> {event.args.fee}
-              </p>
-              <p>
-                <span className="font-semibold">Sqrt Price X96:</span>{" "}
-                {event.args.sqrtPriceX96.toString()}
-              </p>
-              <p>
-                <span className="font-semibold">Tick:</span> {event.args.tick}
-              </p>
-              <p>
-                <span className="font-semibold">Tick Spacing:</span>{" "}
-                {event.args.tickSpacing}
-              </p>
+        events.map((event, index) => {
+          const symbol0 = getTokenSymbol(event.args.currency0);
+          const symbol1 = getTokenSymbol(event.args.currency1);
+
+          return (
+            <div
+              key={index}
+              className="bg-neutral-800 text-white rounded-lg shadow-md p-6 mb-6"
+              onClick={() => handleNavigationToPool(event)}
+            >
+              <h3 className="text-xl font-bold mb-4">
+                {index + 1}. Pool: {symbol0}/{symbol1}
+              </h3>
             </div>
-          </div>
-        ))
+          );
+        })
       ) : (
         <p className="text-center text-gray-400">No events found</p>
       )}
