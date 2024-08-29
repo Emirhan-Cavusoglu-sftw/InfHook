@@ -180,11 +180,19 @@ const AddLiquidity = () => {
     return id.length > length ? `${id.substring(0, length)}...` : id;
   };
 
+  function getLowerUsableTick(tick) {
+    let intervals = Math.floor(tick / Number(tickSpacing));
+
+    if (tick < 0 && tick % Number(tickSpacing) !== 0) intervals--;
+
+    return intervals * Number(tickSpacing);
+  }
+
   return (
     <div className="flex justify-center items-start bg-transparent mt-16">
       <div className="bg-neutral-800 p-6 rounded-lg w-[54%] shadow-lg shadow-cyan-400">
         <div className="mb-4 font-semibold text-3xl text-gray-300 border-b-2 border-cyan-400 ">
-           {tokenSymbol1}/{tokenSymbol2}
+          {tokenSymbol1}/{tokenSymbol2}
         </div>
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-gray-300">
@@ -216,8 +224,7 @@ const AddLiquidity = () => {
         </div>
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-gray-300">
-            1 {tokenSymbol1} = {tokenSymbol2}{" "}
-            {calculatePrice(Number(ctick))}
+            1 {tokenSymbol1} = {tokenSymbol2} {calculatePrice(Number(ctick))}
           </h2>
         </div>
       </div>
@@ -320,13 +327,7 @@ const AddLiquidity = () => {
                       }}
                       onChange={(e) =>
                         setLowerPrice(
-                          String(
-                            calculateTick(
-                              Number(e.target.value),
-                              Number(tickSpacing),
-                              false
-                            )
-                          )
+                          String(getLowerUsableTick(e.target.value))
                         )
                       }
                       className="w-full px-3 py-2 border rounded"
@@ -344,13 +345,7 @@ const AddLiquidity = () => {
                       }}
                       onChange={(e) =>
                         setUpperPrice(
-                          String(
-                            calculateTick(
-                              Number(e.target.value),
-                              Number(tickSpacing),
-                              true
-                            )
-                          )
+                          String(getLowerUsableTick(e.target.value))
                         )
                       }
                       className="w-full px-3 py-2 border rounded"

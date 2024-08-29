@@ -88,15 +88,16 @@ const MyOrders = () => {
   const [tokenInfo, setTokenInfo] = useState<TokenInfo[]>([]);
   const router = useRouter();
   const [isFirstRender, setIsFirstRender] = useState(true);
+  const [symbolData, setSymbolData] = useState([]);
 
   console.log("Selected Hook:", selectedHook);
 
   const { data, isLoading, isFetched } = useQuery({
-    queryKey: ["tokenInfo"],
+    queryKey: ["events"],
     queryFn: async () => {
-      const tokenInfo1 = await getTokenInfo(setTokenInfo);
+      const events = await getEvents();
       return {
-        tokenInfo1,
+        events,
       };
     },
   });
@@ -108,11 +109,11 @@ const MyOrders = () => {
     isFetched: isFetched2,
   } = useQuery({
     enabled: false,
-    queryKey: ["events"],
+    queryKey: ["orders"],
     queryFn: async () => {
-      const events = await getEvents();
+      const orders = await getOrders();
       return {
-        events,
+        orders,
       };
     },
   });
@@ -124,13 +125,8 @@ const MyOrders = () => {
     isFetched: isFetched3,
   } = useQuery({
     enabled: false,
-    queryKey: ["orders"],
-    queryFn: async () => {
-      const orders = await getOrders();
-      return {
-        orders,
-      };
-    },
+    queryKey: ["tokenSymbols"],
+    queryFn: async () => {},
   });
 
   useEffect(() => {
@@ -144,6 +140,27 @@ const MyOrders = () => {
       refetch3();
     }
   }, [isFetched2]);
+
+  useEffect(() => {
+    const fetchSymbols = async () => {
+      const data = await Promise.all(
+        events.map(async (event) => {
+          const symbol0 = await getSymbols(event.args.currency0);
+          const symbol1 = await getSymbols(event.args.currency1);
+          return { symbol0, symbol1, fee: event.args.fee };
+        })
+      );
+      setSymbolData(data);
+    };
+
+    fetchSymbols();
+  }, [events]);
+
+  useEffect(() => {
+    if (selectedHook !== "0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040") {
+      router.push("/");
+    }
+  }, [selectedHook]);
 
   console.log("isloading: " + isLoading);
 
@@ -183,8 +200,8 @@ const MyOrders = () => {
 
             decodedEvents.push({
               args: {
-                currency0: currency0Symbol,
-                currency1: currency1Symbol,
+                currency0: decodedEvent.args.currency0,
+                currency1: decodedEvent.args.currency1,
                 fee: decodedEvent.args.fee,
                 hooks: decodedEvent.args.hooks,
                 id: decodedEvent.args.id,
@@ -420,6 +437,41 @@ const MyOrders = () => {
     return str;
   }
 
+  function getLowerUsableTick(tick, orders) {
+    let tickSpacing = Number(orders.args.tickSpacing);
+
+    // Eğer tick negatifse:
+    if (tick < 0) {
+      let intervals = Math.ceil(tick / tickSpacing);
+      if (tick % tickSpacing !== 0) {
+        intervals--;
+      }
+      return intervals * tickSpacing;
+    }
+
+    // Eğer tick pozitifse:
+    if (tick > 0) {
+      let intervals = Math.floor(tick / tickSpacing);
+      return intervals * tickSpacing;
+    }
+
+    // tick 0 ise, doğrudan 0 döndür
+    return 0;
+  }
+
+  async function getSymbols(address: string) {
+    try {
+      const symbol = await readContract(config, {
+        abi: ERC20ABI,
+        address: address,
+        functionName: "symbol",
+      });
+      return symbol;
+    } catch (error) {
+      console.error("Error fetching or processing data:", error);
+    }
+  }
+
   return (
     <div className="flex flex-row justify-center items-center bg-transparent space-x-48 mt-24">
       <div className="flex flex-col bg-neutral-800 w-[500px] h-[600px] rounded-2xl items-center pt-2 px-6 border-2 border-gray-500 border-opacity-80 shadow-lg shadow-cyan-400">
@@ -435,9 +487,9 @@ const MyOrders = () => {
             className="mb-4 p-3 rounded bg-neutral-700 text-white w-full"
           >
             <option value="">Select a Pool</option>
-            {events.map((event, index) => (
+            {symbolData.map((data, index) => (
               <option key={index} value={index}>
-                {`Pool: ${event.args.currency0} / ${event.args.currency1} - Fee: ${event.args.fee}`}
+                {`Pool: ${data.symbol0} / ${data.symbol1} - Fee: ${data.fee}`}
               </option>
             ))}
           </select>
@@ -468,8 +520,11 @@ const MyOrders = () => {
               <input
                 type="number"
                 placeholder="Enter Tick"
-                value={tickToSellAt}
-                onChange={(e) => setTickToSellAt(Number(e.target.value))}
+                onChange={(e) =>
+                  setTickToSellAt(
+                    Number(getLowerUsableTick(e.target.value, selectedEvent))
+                  )
+                }
                 className="p-3 rounded bg-neutral-700 text-white w-full"
                 style={{
                   MozAppearance: "textfield",
@@ -492,7 +547,12 @@ const MyOrders = () => {
               type="text"
               placeholder="Enter Price"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => {
+                const inputPrice = e.target.value;
+                if (parseFloat(inputPrice) >= 0 || inputPrice === "") {
+                  setPrice(inputPrice);
+                }
+              }}
               className="p-3 rounded bg-neutral-700 text-white w-full"
             />
           )}

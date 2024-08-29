@@ -71,7 +71,7 @@ export default function Home() {
                 height={300}
                 width={400}
               />
-              <p className="w-[450px] text-xl font-normal text-center pt-4 text-white text-opacity-80">
+              <div className="w-[450px] text-xl font-normal text-center pt-4 text-white text-opacity-80">
                 <span className="font-bold mb-4 block text-2xl">
                   Unlock the Power of Uniswap v4
                 </span>
@@ -98,7 +98,7 @@ export default function Home() {
                   Take full advantage of Uniswap v4’s flexibility to build
                   innovative decentralized exchange (DEX) solutions.
                 </span>
-              </p>
+              </div>
             </motion.div>
             <motion.div
               className="flex flex-row space-x-80"
@@ -111,18 +111,20 @@ export default function Home() {
               animate={mainControls2}
               transition={{ duration: 1.5, delay: 0.1, ease: "easeInOut" }}
             >
-              <p className="w-[450px] text-xl font-normal text-center pt-12 flex flex-col text-white text-opacity-80 ">
+              <div className="w-[450px] text-xl font-normal text-center pt-12 flex flex-col text-white text-opacity-80">
                 <span className="font-bold mb-4">
                   Activate Nezlobin Mode: Protect Your Liquidity
                 </span>
-                Switch to Nezlobin mode and enjoy dynamic swap fees that
-                automatically adjust to market changes. This innovative approach
-                reduces impermanent loss, ensuring that liquidity providers
-                retain more value during volatile market conditions. By
-                attaching the Nezlobin hook to your pools, you can manage fees
-                efficiently and protect your investments with smart, responsive
-                fee adjustments.
-              </p>
+                <span>
+                  Switch to Nezlobin mode and enjoy dynamic swap fees that
+                  automatically adjust to market changes. This innovative
+                  approach reduces impermanent loss, ensuring that liquidity
+                  providers retain more value during volatile market conditions.
+                  By attaching the Nezlobin hook to your pools, you can manage
+                  fees efficiently and protect your investments with smart,
+                  responsive fee adjustments.
+                </span>
+              </div>
               <Image
                 className="rounded-3xl"
                 alt="Nezlobin"
@@ -149,20 +151,22 @@ export default function Home() {
                 height={300}
                 width={400}
               />
-              <p className="w-[450px] text-xl font-normal text-center pt-12 flex flex-col text-white text-opacity-80 ">
+              <div className="w-[450px] text-xl font-normal text-center pt-12 flex flex-col text-white text-opacity-80">
                 <span className="font-bold mb-4">
                   Leverage Order Books Just Like CEXs
                 </span>
-                Leverage Order Books Just Like CEXs Now you can create orders
-                like in centralized exchanges (CEXs) using our Limit Order Hook.
-                Set buy or sell orders with precise price points, just as you
-                would in an order book system. This provides greater control and
-                flexibility, allowing you to optimize trades and reduce
-                slippage. As the first hook project on Educhain, this feature
-                empowers users to interact with the market on their terms,
-                combining the best of decentralized finance with familiar
-                trading tools.
-              </p>
+                <span>
+                  Leverage Order Books Just Like CEXs Now you can create orders
+                  like in centralized exchanges (CEXs) using our Limit Order
+                  Hook. Set buy or sell orders with precise price points, just
+                  as you would in an order book system. This provides greater
+                  control and flexibility, allowing you to optimize trades and
+                  reduce slippage. As the first hook project on Educhain, this
+                  feature empowers users to interact with the market on their
+                  terms, combining the best of decentralized finance with
+                  familiar trading tools.
+                </span>
+              </div>
             </motion.div>
           </div>
         </div>
