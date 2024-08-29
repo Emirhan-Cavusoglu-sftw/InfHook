@@ -12,6 +12,14 @@ export async function getAllowance(
     console.error("Account not found or address is invalid.");
     return;
   }
+  async function isValidAddress(tokenAddress: string) {
+    return /^0x[a-fA-F0-9]{40}$/.test(tokenAddress);
+  }
+
+  if (!isValidAddress(tokenAddress)) {
+    alert("Invalid Token Address");
+    return;
+  }
   try {
     const allowance = await readContract(config, {
       abi: ERC20ABI,

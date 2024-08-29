@@ -5,6 +5,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { Provider } from "./components/provider";
 import Header from "./components/header";
 import { HookProvider } from "./components/hookContext";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +25,10 @@ export default function RootLayout({
         <Provider>
           <HookProvider>
             <Header />
+            <Suspense>
+
             {children}
+            </Suspense>
           </HookProvider>
         </Provider>
       </body>

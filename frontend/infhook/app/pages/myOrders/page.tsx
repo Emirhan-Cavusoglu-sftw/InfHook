@@ -308,6 +308,8 @@ const MyOrders = () => {
         hookAddress
       );
 
+      console.log("Selected Event", selectedEvent);
+
       let approve1hash, approve2hash;
 
       // Allowance kontrolü yap, 0 ise approve yap
