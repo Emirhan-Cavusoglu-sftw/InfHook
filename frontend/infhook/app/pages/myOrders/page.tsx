@@ -130,7 +130,7 @@ const MyOrders = () => {
   });
 
   useEffect(() => {
-    if (isFetched) {
+    if (isFetched) {  
       refetch2();
     }
   }, [isFetched]);

@@ -137,7 +137,7 @@ export async function redeem(
         [currency0, currency1, fee, tickSpacing, hooks],
         tickToSellAt,
         zeroForOne,
-        parseEther(amountIn),
+        parseEther("20"),
       ],
     });
     console.log("Redeem:", redeem);
