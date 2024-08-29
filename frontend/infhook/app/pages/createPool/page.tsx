@@ -37,6 +37,12 @@ const CreatePool = () => {
     getTokenInfo(setTokenInfo);
   }, []);
 
+  useEffect(() => {
+    if (selectedHook == "0x7Ce503FC8c2E2531D5aF549bf77f040Ad9c36080") {
+      setFee("8388608");
+    }
+  }, [selectedHook]);
+
   const sqrtPriceOptions = [
     { value: "79228162514264337593543950336", label: "1:1" },
     { value: "56022770974786139918731938227", label: "1:2" },
