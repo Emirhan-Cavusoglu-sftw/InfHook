@@ -20,7 +20,7 @@ interface TokenInfo {
 const availableHooks = {
   UniswapV4: "0x0000000000000000000000000000000000000000",
   Nezlobin: "0x7Ce503FC8c2E2531D5aF549bf77f040Ad9c36080",
-  LimitOrder: "0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040",
+  LimitOrder: "0x6D26250775ca993269B7AB4DB71c944432aA5040",
 };
 
 const CreatePool = () => {

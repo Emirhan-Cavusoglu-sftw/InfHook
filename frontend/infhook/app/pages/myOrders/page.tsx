@@ -157,7 +157,7 @@ const MyOrders = () => {
   }, [events]);
 
   useEffect(() => {
-    if (selectedHook !== "0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040") {
+    if (selectedHook !== "0x6D26250775ca993269B7AB4DB71c944432aA5040") {
       router.push("/");
     }
   }, [selectedHook]);
@@ -223,7 +223,7 @@ const MyOrders = () => {
   async function getOrders() {
     try {
       const response = await fetch(
-        "https://opencampus-codex.blockscout.com/api/v2/addresses/0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040/logs"
+        "https://opencampus-codex.blockscout.com/api/v2/addresses/0x6D26250775ca993269B7AB4DB71c944432aA5040/logs"
       );
       const data = await response.json();
       const decodedEvents2: Order[] = [];
@@ -311,7 +311,7 @@ const MyOrders = () => {
         selectedEvent.args.hooks,
       ];
 
-      const hookAddress = "0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040";
+      const hookAddress = "0x6D26250775ca993269B7AB4DB71c944432aA5040";
 
       // Token 0 için allowance kontrolü
       const allowance1 = await getAllowance(
@@ -385,7 +385,7 @@ const MyOrders = () => {
         abi: ERC20ABI,
         address: tokenAddress,
         functionName: "approve",
-        args: ["0xcaa83ba2be15bdcb00c908a5c50d62f4f47b5040", uintMax],
+        args: ["0x6D26250775ca993269B7AB4DB71c944432aA5040", uintMax],
       });
       return approve;
     } catch (error) {
