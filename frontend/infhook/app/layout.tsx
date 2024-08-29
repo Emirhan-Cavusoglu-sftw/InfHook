@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Provider>
           <HookProvider>
-            <Header />
+            <Header /> 
             <Suspense>
 
             {children}
