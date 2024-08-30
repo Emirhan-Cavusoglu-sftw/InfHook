@@ -62,7 +62,8 @@ const Swap = () => {
   const [poolSlot, setPoolSlot] = useState<any[]>([]);
   const [lpFee, setLpFee] = useState<string | null>(null);
   const [amountOut, setAmountOut] = useState("");
-  const [balance, setBalance] = useState<number | null>(null)
+  const [balance, setBalance] = useState("");
+  const [swapPopupVisible, setSwapPopupVisible] = useState(false);
   console.log("Selected Hook:", selectedHook);
 
   useEffect(() => {
@@ -77,14 +78,22 @@ const Swap = () => {
     }
   }, [selectedPool, zeroForOne]);
 
+  useEffect(() => {
+    if (selectedPool) {
+      fetchBalances();
+    }
+  }, [selectedPool]);
+
   async function fetchBalances() {
-    const updatedEvents = await Promise.all(
-      filteredEvents.map(async (event) => {
-        const balance = await getBalance(event.args.currency0);
-        return { ...event, balance };
-      })
-    );
-    setFilteredEvents(updatedEvents);
+    if (!selectedPool) return;
+
+    try {
+      const balance1 = await getBalance(selectedPool.args.currency0);
+      console.log("Balance: ", balance1);
+      setBalance(String(balance1));
+    } catch (error) {
+      console.error("Error fetching balance: ", error);
+    }
   }
 
   async function getEvents() {
@@ -309,6 +318,14 @@ const Swap = () => {
       <div
         className={`bg-neutral-900 w-[500px] h-[460px] rounded-3xl flex flex-col items-center relative shadow-cyan-400 shadow-md`}
       >
+        <div className="absolute top-0 right-4 mt-4">
+          <button
+            onClick={() => setSwapPopupVisible(true)}
+            className="text-white opacity-60 text-xl"
+          >
+            ?
+          </button>
+        </div>
         <h1 className="p-4 text-lg text-white opacity-60 absolute top-0 left-4">
           Swap
         </h1>
@@ -369,6 +386,11 @@ const Swap = () => {
                     : "Select Pool"}
                 </button>
               </div>
+              {balance && (
+                <div className="text-white opacity-60 text-xs p-2">
+                  Balance: {balance}
+                </div>
+              )}
             </div>
           </div>
 
@@ -522,6 +544,53 @@ const Swap = () => {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+        {swapPopupVisible && (
+          <div
+            className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 "
+            id="popupOverlay"
+            onClick={() => setSwapPopupVisible(false)}
+          >
+            <div className=" bg-blue-800 w-[600px] text-white p-4 rounded-lg z-50">
+              <p>
+                <strong>Testing Nezlobin Hook</strong>
+                <br />
+                <br />
+                When testing the Nezlobin hook, the process involves several
+                steps. First, switch to the Nezlobin mode and create a pool by
+                selecting the Nezlobin hook during the pool creation. For this
+                test, we set the tick spacing to 100 (though you can choose a
+                different value, this setup is calculated for a more accurate
+                test). Once the pool is created, navigate to the Explorer, click
+                on the pool, and add liquidity. If the tokens are newly minted,
+                you may need to approve them first.
+                <br />
+                <br />
+                Next, set the parameters for liquidity provision: 5000, 5000,
+                -887200, and 887200 (these are tick values, with the last two
+                representing the minimum and maximum tick values for 100-tick
+                spacing).
+                <br />
+                <br />
+                Then, go to the Swap section and perform a swap by selling 590
+                tokens in the direction of the pool’s pair (e.g., if the pool is
+                USDC/WEDU, sell in this direction). Perform the swap twice, then
+                use the direction toggle button to view the current swap fee.
+                You should see a low fee, around 769, indicating the lower cost
+                of the swap.
+                <br />
+                <br />
+                Next, reverse the direction (e.g., WEDU/USDC) and swap the same
+                amount (590 tokens). After the swap, toggle the direction button
+                again, and you’ll observe a higher swap fee, around 5006. This
+                increase is due to the significant price impact in the buying
+                direction. Additionally, if an approval prompt appears, ensure
+                that the previous transaction has fully processed before
+                initiating the swap, the same caution applies when adding
+                liquidity.
+              </p>
             </div>
           </div>
         )}

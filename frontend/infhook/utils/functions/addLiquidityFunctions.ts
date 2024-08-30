@@ -8,7 +8,7 @@ import { LiquidiytDeltaABI } from "../readerABI.json";
 import { ERC20ABI } from "../ERC20ABI.json";
 
 export async function Approve(tokenAddress: string) {
-  const uintMax = 200000000000000000;
+  const uintMax = 10000000000000000000000000;
 
   async function isValidAddress(tokenAddress: string) {
     return /^0x[a-fA-F0-9]{40}$/.test(tokenAddress);

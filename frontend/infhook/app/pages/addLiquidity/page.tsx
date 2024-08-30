@@ -38,6 +38,7 @@ const AddLiquidity = () => {
   const hook = searchParams.get("hooks");
   const tokenSymbol1 = searchParams.get("tokenSymbol1");
   const tokenSymbol2 = searchParams.get("tokenSymbol2");
+  const [addLiquidityInfoPopup, setAddLiquidityInfoPopup] = useState(false);
 
   useEffect(() => {
     getSlot(String(token0), String(token1), Number(fee), Number(tickSpacing));
@@ -217,6 +218,12 @@ const AddLiquidity = () => {
         >
           Add Liquidity
         </motion.button>
+        <button
+          onClick={() => setAddLiquidityInfoPopup(true)}
+          className="ml-8 text-white opacity-60 text-2xl"
+        >
+          ?
+        </button>
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-gray-300">
             Current Tick: {ctick}
@@ -363,6 +370,27 @@ const AddLiquidity = () => {
               Confirm Liquidity
             </motion.button>
           </div>
+        </div>
+      )}
+      {addLiquidityInfoPopup && (
+        <div
+          className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 "
+          id="popupOverlay"
+          onClick={() => setAddLiquidityInfoPopup(false)}
+        >
+          <div className=" bg-blue-800 w-[600px] text-white p-4 rounded-lg z-50 text-xl">
+            <p>
+              To add liquidity, first, navigate to the “Explorer” section, where
+              pools will be displayed based on the active mode. By clicking on
+              the pool you are interested in, you can view its details and
+              proceed to add liquidity. In the liquidity form, you can set your
+              desired price range, which can be specified either as ticks or as
+              a price, depending on your preference. Additionally, you can
+              adjust the amount of each token you want to contribute to the
+              pool. This setup allows for flexible and precise liquidity
+              provision, tailored to your strategy.
+            </p>
+          </div>{" "}
         </div>
       )}
     </div>

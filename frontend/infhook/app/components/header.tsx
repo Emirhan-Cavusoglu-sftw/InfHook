@@ -62,6 +62,17 @@ const Header = () => {
         >
           Create Token
         </button>
+        <Link
+          href={
+            "https://emirhancavusoglu.notion.site/InfHook-Tutorial-6098a38d0df0413d906761331a285479"
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <button className="text-white hover:text-gray-400 transition pt-2">
+            Documentation
+          </button>
+        </Link>
         {isLimitOrderSelected && (
           <button
             onClick={() => handleNavigation("/pages/myOrders")}

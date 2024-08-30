@@ -43,6 +43,7 @@ export async function getTokenInfo(
     }));
     console.log("Tokens ", tokens);
     setTokenInfo(tokens);
+    return tokens;
   } catch (error) {
     console.log(error);
   }

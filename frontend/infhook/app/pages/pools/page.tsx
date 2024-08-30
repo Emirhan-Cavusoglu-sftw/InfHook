@@ -54,6 +54,7 @@ const Pools = () => {
   >([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [tickPrices, setTickPrices] = useState<{ [key: string]: number }>({});
+  const [poolInfoPopup, setPoolInfoPopup] = useState(false);
 
   useEffect(() => {
     fetchTokenInfo();
@@ -204,14 +205,22 @@ const Pools = () => {
       <div className="flex flex-col justify-center items-center w-[1000px] mt-44">
         <div className="flex justify-between items-center w-full mb-4">
           <h1 className="text-2xl font-bold text-white">Pools</h1>
-          <motion.button
-            className="bg-blue-800 hover:bg-blue-950 w-36 opacity-80 text-white py-2 px-4 rounded-xl"
-            onClick={() => handleNavigation("/pages/createPool")}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            Create Pool
-          </motion.button>
+          <div>
+            <motion.button
+              className="bg-blue-800 hover:bg-blue-950 w-36 opacity-80 text-white py-2 px-4 rounded-xl"
+              onClick={() => handleNavigation("/pages/createPool")}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              Create Pool
+            </motion.button>
+            <button
+              onClick={() => setPoolInfoPopup(true)}
+              className="ml-2 text-white opacity-60 text-lg"
+            >
+              ?
+            </button>
+          </div>
         </div>
 
         <div className="bg-transparent border-gray-500 border-opacity-80 border-2 p-6 rounded-lg shadow-lg shadow-cyan-400 w-full overflow-y-auto custom-scrollbar max-h-[400px]">
@@ -271,6 +280,53 @@ const Pools = () => {
             <p className="text-center text-white">Loading...</p>
           )}
         </div>
+        {poolInfoPopup && (
+          <div
+            className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 "
+            id="popupOverlay"
+            onClick={() => setPoolInfoPopup(false)}
+          >
+            <div className=" bg-blue-800 w-[600px] text-white p-4 rounded-lg z-50 text-xl space-y-4">
+              <p>
+                If you navigate to the <strong>“My Positions”</strong> section
+                and then to the <strong>“Create Pool”</strong> tab, you can
+                create a pool tailored to your preferences. In this section, you
+                can:
+              </p>
+              <ul className="space-y-2">
+                <li>
+                  <strong>Select the Tokens:</strong> Choose the tokens you want
+                  to pair in the pool.
+                </li>
+                <li>
+                  <strong>Set the Initial Price Ratio:</strong> Determine the
+                  starting price of the tokens in the pool by setting the
+                  initial price ratio.
+                </li>
+                <li>
+                  <strong>Adjust Other Parameters:</strong> Configure additional
+                  parameters like the fee and tick spacing.
+                </li>
+              </ul>
+              <p>
+                If the site is in <strong>Nezlobin mode</strong>, the dynamic
+                fee field will automatically populate with a value. This value
+                signifies that the pool carries the dynamic fee flag, essential
+                for pools utilizing the Nezlobin hook.
+              </p>
+              <p>
+                You also have the flexibility to customize the price ratios to
+                establish the initial trading conditions for your pool.
+                Additionally, you have full control over selecting the tokens
+                you want to use, enabling you to create pools that align with
+                your trading or liquidity provision strategies—whether in
+                standard Uniswap v4 mode or when using specialized hooks like{" "}
+                <strong>Nezlobin</strong>
+                {" "}or <strong>Limit Order</strong>.
+              </p>
+            </div>{" "}
+          </div>
+        )}
       </div>
     </div>
   );

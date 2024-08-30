@@ -89,6 +89,7 @@ const MyOrders = () => {
   const router = useRouter();
   const [isFirstRender, setIsFirstRender] = useState(true);
   const [symbolData, setSymbolData] = useState([]);
+  const [limitOrderInfoPopup, setLimitOrderInfoPopup] = useState(false);
 
   console.log("Selected Hook:", selectedHook);
 
@@ -130,7 +131,7 @@ const MyOrders = () => {
   });
 
   useEffect(() => {
-    if (isFetched) {  
+    if (isFetched) {
       refetch2();
     }
   }, [isFetched]);
@@ -475,8 +476,15 @@ const MyOrders = () => {
   return (
     <div className="flex flex-row justify-center items-center bg-transparent space-x-48 mt-24">
       <div className="flex flex-col bg-neutral-800 w-[500px] h-[600px] rounded-2xl items-center pt-2 px-6 border-2 border-gray-500 border-opacity-80 shadow-lg shadow-cyan-400">
-        <h1 className="text-white text-3xl mb-8">Place Order</h1>
-
+        <div className="flex items-center mb-8">
+          <h1 className="text-white text-3xl">Place Order</h1>
+          <button
+            className="ml-4 text-white text-2xl flex pt-1"
+            onClick={() => setLimitOrderInfoPopup(true)}
+          >
+            ?
+          </button>
+        </div>
         <div className="w-full">
           <h1 className="text-white text-lg mb-2">Select Pool</h1>
           <select
@@ -633,6 +641,59 @@ const MyOrders = () => {
             ))}
         </ul>
       </div>
+      {limitOrderInfoPopup && (
+        <div
+          className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 "
+          id="popupOverlay"
+          onClick={() => setLimitOrderInfoPopup(false)}
+        >
+          <div className=" bg-blue-800 w-[600px] text-white p-4 rounded-lg z-50">
+            <p>
+              <strong># Testing Limit Order Hook</strong>
+              <br />
+              <br />
+              In the Limit Order test, you will follow a similar process to the
+              Nezlobin test but with some key differences:
+              <br />
+              <br />
+              <strong>1. Create a Pool:</strong> First, create a pool by
+              selecting the Limit Order hook. Set the dynamic fee to 3000 and
+              tick spacing to 100. In the price ratio section, choose a 1:1
+              ratio.
+              <br />
+              <br />
+              <strong>2. Add Liquidity:</strong> After creating the pool, add
+              liquidity with the same parameters used in the Nezlobin test:
+              5000, 5000, -887200, and 887200.
+              <br />
+              <br />
+              <strong>3. Place an Order:</strong> Next, go to the “My Orders”
+              section while in Limit Order mode. Place an order with the
+              following instructions: “Sell 20 tokens when the tick reaches
+              100.” After placing the order, you’ll see it listed in the orders
+              section. Notice that the “Redeem” button is disabled since the
+              order hasn’t been executed yet, but you can cancel the order at
+              this point.
+              <br />
+              <br />
+              <strong>4. Trigger the Order:</strong> Now, act as another user
+              and perform a swap in the opposite direction of the pool pair
+              (e.g., if the pool is USDC/WEDU, swap in the WEDU/USDC direction).
+              Execute a swap of 200 tokens, which should push the tick to 100,
+              triggering the order you placed.
+              <br />
+              <br />
+              <strong>5. Redeem:</strong> After the swap, return to the “My
+              Orders” section. You will now see that the “Redeem” button has
+              turned green, indicating that your order has been executed. At
+              this point, you can redeem the order, while the “Cancel Order”
+              option will no longer be available. The Limit Order hook has
+              matched your order by executing a corresponding swap when the tick
+              reached 100.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
