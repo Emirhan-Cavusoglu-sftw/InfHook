@@ -25,7 +25,7 @@ import {PoolSwapTest} from "v4-core/Test/PoolSwapTest.sol";
 import {PoolManager} from "v4-core/PoolManager.sol";
 import {LiquidityAmounts} from "v4-periphery/lib/v4-core/test/utils/LiquidityAmounts.sol";
 import {BalanceDelta} from "v4-core/types/BalanceDelta.sol";
-import {Nezlobin} from "../../../src/Nezlobin.sol";
+import {Nezlobin} from "../../src/Nezlobin.sol";
 import {LPFeeLibrary} from "v4-core/libraries/LPFeeLibrary.sol";
 
 contract Look is Script {
@@ -73,6 +73,8 @@ contract Look is Script {
         console.log("tick", tick);
         console.log("CurrentTick" , currentTick);
         console.log("protocolFee", protocolFee);
-        
+        console.log("lpFee", lpFee);
+        console.log("Balance token0", IERC20(token0).balanceOf(0x8464135c8F25Da09e49BC8782676a84730C318bC));
+        console.log("Balance token1", IERC20(token1).balanceOf(0x8464135c8F25Da09e49BC8782676a84730C318bC));
     }
 }
